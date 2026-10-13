@@ -290,6 +290,8 @@ App.get("showLoginPassword").checked = false;
 App.get("loginPassword").type = "password";
 App.get("accountName").value = "";
 App.get("welcomeHeading").textContent = "Welcome back ♡";
+// Clear the previous account's name when signing out.
+App.get("closetHeading").textContent = "My Closet ♡";
   }
 });
 

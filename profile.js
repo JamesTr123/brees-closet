@@ -12,6 +12,11 @@ App.get("showLoginPassword").addEventListener("change", function () {
 // Display the current account's name safely as plain text.
 Profile.renderGreeting = function () {
   const name = Account.user?.user_metadata?.display_name;
+  // Personalize the main heading for the signed-in account.
+App.get("closetHeading").textContent =
+  typeof name === "string" && name.trim()
+    ? name.trim() + "'s Closet ♡"
+    : "My Closet ♡";
 
   App.get("welcomeHeading").textContent =
     typeof name === "string" && name.trim()
