@@ -146,6 +146,19 @@ App.get("settingsAccountControls").appendChild(
 
     // The cloud connection is ready, so reveal the app.
     document.body.classList.remove("account-setup");
+    // Show the first tutorial only after the account's app is visible.
+// A short delay also lets the remaining script files finish loading.
+setTimeout(function () {
+  if (
+    attempt === Account.attempt &&
+    Account.user?.id === user.id &&
+    typeof Tour !== "undefined" &&
+    Tour.shouldStart(Account.user) &&
+    !document.body.classList.contains("account-setup")
+  ) {
+    Tour.start();
+  }
+}, 0);
   } catch (error) {
     if (attempt !== Account.attempt) return;
 
@@ -347,11 +360,16 @@ App.get("createAccountButton").addEventListener(
     App.get("loginStatus").textContent = "Creating your account...";
 
     try {
-      const result = await Account.client.auth.signUp({
-        email: email,
-        password: password
-      });
-
+    // New accounts get the tutorial after their closet opens.
+const result = await Account.client.auth.signUp({
+  email: email,
+  password: password,
+  options: {
+    data: {
+      tutorial_pending: true
+    }
+  }
+});
       if (result.error) throw result.error;
 
       if (result.data.session && result.data.user) {

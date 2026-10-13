@@ -1,103 +1,29 @@
-// SETTINGS, TUTORIAL, AND ACCOUNT DELETION
+// SETTINGS AND ACCOUNT DELETION
 const Settings = {
-  tutorialPosition: 0,
   deleting: false
 };
 
-// Simple tutorial pages.
-Settings.tutorial = [
-  {
-    title: "Build Your Closet",
-    text: "Open My Closet and tap Add Clothing. Choose or take a photo, " +
-      "then fill in the item's type, color, warmth, and styles. " +
-      "Use Edit to change an item and i to see its details."
-  },
-  {
-    title: "Save Your Outfits",
-    text: "Open My Outfits and tap Add Outfit. Choose one bottom and " +
-      "your tops, optionally name it, and tap the star for a favorite. " +
-      "After saving, you can add a photo of yourself in the outfit."
-  },
-  {
-    title: "Log What You Wore",
-    text: "Tap Log an Outfit in My Outfits. Choose a saved outfit or " +
-      "create a new one, then select the date. Wear History remembers " +
-      "when you wore it. A new outfit photo updates its main picture."
-  },
-  {
-    title: "Find Something to Wear",
-    text: "Use Outfit Decider to choose styles and a warmth range. " +
-      "Use My Location to consider current weather. Suggestions exclude " +
-      "laundry items and can avoid recently worn combinations."
-  },
-  {
-    title: "Style One Piece",
-    text: "Tap Style This Piece on a clothing card. New Outfits shows " +
-      "up to three new combinations. Existing Outfits shows your saved " +
-      "combinations containing that item."
-  },
-  {
-    title: "Update Your Laundry",
-    text: "Open Laundry Basket and tap Update Laundry. Recently worn " +
-      "clothes appear first. Swipe Mode reviews clothing worn in the " +
-      "last four days: left for laundry, right for clean."
-  },
-  {
-    title: "Accounts and Backups",
-    text: "Use the same email and password on another device to access " +
-      "the same cloud closet. Refresh to load updates from another device. " +
-      "Back Up Closet downloads a separate copy for safekeeping."
-  }
-];
-
-Settings.showTutorial = function () {
-  const page = Settings.tutorial[Settings.tutorialPosition];
-
-  App.get("tutorialHeading").textContent = page.title;
-  App.get("tutorialText").textContent = page.text;
-  App.get("tutorialProgress").textContent =
-    (Settings.tutorialPosition + 1) + " of " + Settings.tutorial.length;
-
-  App.get("previousTutorialButton").disabled =
-    Settings.tutorialPosition === 0;
-
-  App.get("nextTutorialButton").textContent =
-    Settings.tutorialPosition === Settings.tutorial.length - 1
-      ? "Done"
-      : "Next";
-};
-
+// Open Settings.
 App.get("openSettingsButton").addEventListener("click", function () {
   if (!Account.user) return;
 
+  // The old tutorial area is no longer used.
   App.get("tutorialPanel").hidden = true;
-  App.get("settingsDialog").showModal();
+
+  if (!App.get("settingsDialog").open) {
+    App.get("settingsDialog").showModal();
+  }
 });
 
+// Close Settings.
 App.get("closeSettingsButton").addEventListener("click", function () {
   App.get("settingsDialog").close();
 });
 
+// Close Settings and start the guided tour.
 App.get("openTutorialButton").addEventListener("click", function () {
-  Settings.tutorialPosition = 0;
-  App.get("tutorialPanel").hidden = false;
-  Settings.showTutorial();
-});
-
-App.get("previousTutorialButton").addEventListener("click", function () {
-  if (Settings.tutorialPosition > 0) {
-    Settings.tutorialPosition--;
-    Settings.showTutorial();
-  }
-});
-
-App.get("nextTutorialButton").addEventListener("click", function () {
-  if (Settings.tutorialPosition === Settings.tutorial.length - 1) {
-    App.get("tutorialPanel").hidden = true;
-  } else {
-    Settings.tutorialPosition++;
-    Settings.showTutorial();
-  }
+  App.get("settingsDialog").close();
+  Tour.start();
 });
 
 // Open the deletion confirmation.

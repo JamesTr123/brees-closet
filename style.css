@@ -725,3 +725,65 @@ body.account-setup > .bottom-tabs {
   color: white;
   font-weight: bold;
 }
+/* A compact guide sits above the bottom navigation.
+   The actual tab stays visible behind it. */
+#guidedTour {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  width: auto;
+  max-width: 540px;
+  max-height: 45dvh;
+  margin: 0 auto;
+  padding: 16px;
+  overflow-y: auto;
+  border: 2px solid #c5236b;
+  border-radius: 20px;
+  background: white;
+  color: #49333d;
+  box-shadow: 0 6px 28px rgba(73, 33, 53, 0.25);
+  z-index: 20;
+}
+
+#guidedTour h3 {
+  margin: 8px 0;
+  color: #c5236b;
+  font-size: 18px;
+}
+
+#guidedTour p {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tour-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+#guidedTour button {
+  padding: 8px 14px;
+}
+
+#guidedTour .button-row {
+  margin: 12px 0 0;
+}
+
+#guidedTour .primary {
+  margin: 0;
+}
+
+/* Emphasize the tab currently being explained. */
+.bottom-tabs button.tour-highlight {
+  outline: 2px solid #c5236b;
+  outline-offset: 2px;
+}
+
+/* Leave scrolling room so the guide does not hide page content. */
+body.tour-active {
+  padding-bottom: calc(420px + env(safe-area-inset-bottom, 0px));
+}
