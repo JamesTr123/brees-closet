@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Support text and symbols such as hearts. -->
+  <meta charset="UTF-8">
+
+  <!-- Make the page fit phones and computers. -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Bree's Closet</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="account-setup"></body>
+  <header>
+    <h1>Bree's Closet ♡</h1>
+    <p>Your clothes. Your outfits. Your style.</p>
+  </header>
+
+  <!-- Sign-in setup screen. -->
+<section id="accountSetupPage">
+  <div class="panel narrow">
+    <h2>Welcome to Bree's Closet ♡</h2>
+
+    <form id="loginForm">
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" type="email"
+             autocomplete="username" required>
+
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password"
+             autocomplete="current-password" required>
+
+      <button id="loginButton" class="primary" type="submit">
+        Sign In
+      </button>
+      <!-- Create an account using the email and password entered above. -->
+<button id="createAccountButton" class="primary" type="button">
+  Create Account
+</button>
+
+<p class="small-note">
+  For a new account, choose a password with at least 8 characters.
+</p>
+    </form>
+
+    <div id="signedInPanel" hidden>
+      <p id="signedInEmail"></p>
+      <p>
+        Sign-in is working! Connecting your account's closet
+        is our next step.
+      </p>
+
+      <button id="signOutButton" class="primary" type="button">
+        Sign Out
+      </button>
+    </div>
+
+    <p id="loginStatus" role="status"></p>
+  </div>
+</section>
+  <!-- HOME -->
+  <section id="homePage">
+    <button id="openSettingsButton" class="primary" type="button">
+  ⚙ Settings
+</button>
+    <h2>Welcome, Bree ♡</h2>
+    <p>Build your closet and find your next favorite outfit.</p>
+
+    <button id="backupButton" class="primary" type="button">
+      Back Up Closet
+    </button>
+
+    <label class="primary file-button">
+      Restore Backup
+      <input id="restoreInput" type="file" accept=".json" hidden>
+    </label>
+
+    <p id="backupStatus" role="status"></p>
+  </section>
+
+  <!-- MY CLOSET -->
+  <section id="closetPage" hidden>
+    <h2>My Closet</h2>
+
+    <label class="primary file-button">
+      + Add Clothing
+      <input id="photoInput" type="file" accept="image/*" hidden>
+    </label>
+
+    <!-- This form handles both adding and editing clothing. -->
+    <form id="clothingForm" class="panel narrow" hidden>
+      <img id="preview" class="clothing-photo"
+           alt="Selected clothing photo">
+
+      <label for="itemName">Clothing name</label>
+      <input id="itemName" type="text" maxlength="80"
+             placeholder="Example: Blue sweatshirt" required>
+
+      <label for="category">Category</label>
+      <select id="category">
+        <option value="Top">Top</option>
+        <option value="Bottom">Bottom</option>
+      </select>
+
+      <label for="clothingType">Clothing type</label>
+      <select id="clothingType" required></select>
+
+      <label id="layerQuestion" class="check-label">
+        <input id="canLayer" type="checkbox">
+        Can be worn over another top
+      </label>
+
+      <label for="color">Color</label>
+      <select id="color"></select>
+
+      <label for="warmth">Warmth</label>
+      <select id="warmth">
+        <option value="1">1 — Light</option>
+        <option value="2">2 — Medium</option>
+        <option value="3">3 — Warm</option>
+      </select>
+
+      <fieldset>
+        <legend>Style — choose all that fit</legend>
+
+        <label class="check-label">
+          <input type="checkbox" name="style" value="Fancy">
+          Fancy
+        </label>
+
+        <label class="check-label">
+          <input type="checkbox" name="style" value="Athletic">
+          Athletic
+        </label>
+
+        <label class="check-label">
+          <input type="checkbox" name="style" value="Casual">
+          Casual
+        </label>
+
+        <label class="check-label">
+          <input type="checkbox" name="style" value="Laid Back">
+          Laid Back
+        </label>
+      </fieldset>
+
+      <button id="saveClothingButton" class="primary" type="submit">
+        Save to Closet
+      </button>
+
+      <button id="cancelClothingButton" type="button">Cancel</button>
+    </form>
+
+    <p id="closetStatus" role="status"></p>
+    <div id="closetGrid" class="clothing-grid"></div>
+  </section>
+
+  <!-- MY OUTFITS -->
+  <section id="outfitsPage" hidden>
+    <h2>My Outfits</h2>
+
+    <div class="button-row">
+      <button id="addOutfitButton" class="primary" type="button">
+        ♡ Add Outfit
+      </button>
+
+      <button id="openLogButton" class="primary" type="button">
+        Log an Outfit
+      </button>
+    </div>
+
+    <div class="button-row">
+      <button id="showAllOutfits" type="button"
+              aria-pressed="true">All</button>
+
+      <button id="showFavoriteOutfits" type="button"
+              aria-pressed="false">★ Favorites</button>
+    </div>
+
+    <p id="savedOutfitStatus" role="status"></p>
+    <div id="savedOutfitGrid" class="outfit-grid"></div>
+
+    <!-- Separate section for logging what she wore. -->
+    <section id="logOutfitPanel" class="panel" hidden>
+      <h3>Log an Outfit</h3>
+
+      <label for="wearDate">Date worn</label>
+      <input id="wearDate" type="date">
+
+      <label for="logOutfitSelect">Choose a saved outfit</label>
+      <select id="logOutfitSelect"></select>
+
+      <div id="logOutfitPreview" class="outfit-photos"></div>
+
+      <button id="logSavedButton" class="primary" type="button">
+        Log Selected Outfit
+      </button>
+
+      <button id="createAndLogButton" class="primary" type="button">
+        ♡ Create a New Outfit to Log
+      </button>
+
+      <button id="closeLogButton" type="button">Cancel</button>
+      <p id="logStatus" role="status"></p>
+    </section>
+
+    <!-- The builder is shared by Add Outfit and Log an Outfit. -->
+     <!-- A dialog opens above the page instead of below saved outfits. -->
+<dialog id="outfitDialog" aria-labelledby="builderHeading">
+    <section id="outfitBuilder" class="panel" hidden>
+      <h3 id="builderHeading">Create an Outfit</h3>
+      <!-- She can take a picture or choose one from her phone. -->
+<label class="primary file-button">
+  ♡ Add an Outfit Photo — Optional
+  <input id="outfitPhotoInput" type="file" accept="image/*" hidden>
+</label>
+
+<!-- Show the selected outfit photo before saving. -->
+<img id="outfitPhotoPreview" class="outfit-selfie"
+     alt="Your outfit photo" hidden>
+
+<button id="removeOutfitPhotoButton" type="button" hidden>
+  Remove Photo
+</button>
+
+<p class="small-note">
+  No outfit photo? We’ll show the individual clothing pieces instead.
+</p>
+      <p>Choose one bottom and your tops.</p>
+
+      <label for="outfitSearch">Search clothing names</label>
+      <input id="outfitSearch" type="search"
+             placeholder="Example: sweatshirt">
+
+      <div class="filter-grid">
+        <div>
+          <label for="outfitCategoryFilter">Category</label>
+          <select id="outfitCategoryFilter">
+            <option value="">All categories</option>
+            <option value="Top">Tops</option>
+            <option value="Bottom">Bottoms</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="outfitTypeFilter">Clothing type</label>
+          <select id="outfitTypeFilter">
+            <option value="">All types</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="outfitColorFilter">Color</label>
+          <select id="outfitColorFilter">
+            <option value="">All colors</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="outfitWarmthFilter">Item warmth</label>
+          <select id="outfitWarmthFilter">
+            <option value="">All warmth levels</option>
+            <option value="1">1 — Light</option>
+            <option value="2">2 — Medium</option>
+            <option value="3">3 — Warm</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="outfitStyleFilter">Style</label>
+          <select id="outfitStyleFilter">
+            <option value="">All styles</option>
+            <option value="Fancy">Fancy</option>
+            <option value="Athletic">Athletic</option>
+            <option value="Casual">Casual</option>
+            <option value="Laid Back">Laid Back</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="clearOutfitFilters" type="button">
+        Clear Filters
+      </button>
+
+      <p id="outfitStatus" role="status"></p>
+      <div id="outfitClothingGrid" class="clothing-grid"></div>
+
+      <h3>Your Outfit</h3>
+      <div id="outfitPreview" class="outfit-photos"></div>
+      <p id="outfitTotalWarmth"></p>
+
+      <label for="outfitName">Outfit name — optional</label>
+      <input id="outfitName" type="text" maxlength="80"
+             placeholder="Example: Comfy School Day">
+
+      <button id="favoriteStar" type="button"
+              aria-pressed="false">☆ Add to favorites</button>
+
+      <button id="saveOutfitButton" class="primary" type="button">
+        Save Outfit
+      </button>
+
+      <button id="cancelOutfitButton" type="button">Cancel</button>
+    </section>
+    <!-- End the outfit popup. -->
+</dialog>
+    <!-- History stays below the saved outfits. -->
+    <section>
+      <h2>Wear History</h2>
+      <p id="wearHistoryStatus" role="status"></p>
+      <div id="wearHistoryList"></div>
+    </section>
+  </section>
+
+  <!-- OUTFIT DECIDER -->
+  <section id="deciderPage" hidden>
+    <h2>Outfit Decider</h2>
+
+    <div class="panel">
+      <button id="useLocationButton" class="primary" type="button">
+        Use My Location
+      </button>
+
+      <p id="weatherStatus" role="status">
+        Get the weather, or choose warmth manually.
+      </p>
+
+      <p class="small-note">
+        Location is sent to Open-Meteo to get weather.
+        Your coordinates are not saved in your closet.
+      </p>
+
+      <label for="deciderWarmth">Preferred total warmth</label>
+      <select id="deciderWarmth">
+        <option value="weather">Use the weather</option>
+        <option value="warm">2–4 — Warm weather</option>
+        <option value="mild">2–5 — Mild weather</option>
+        <option value="cool">3–6 — Cool weather</option>
+        <option value="freezing">6–12 — Below freezing</option>
+        <option value="any">Any warmth</option>
+      </select>
+
+      <fieldset>
+        <legend>Styles — blank means any style</legend>
+
+        <label class="check-label">
+          <input type="checkbox" name="deciderStyle" value="Fancy">
+          Fancy
+        </label>
+
+        <label class="check-label">
+          <input type="checkbox" name="deciderStyle" value="Athletic">
+          Athletic
+        </label>
+
+        <label class="check-label">
+          <input type="checkbox" name="deciderStyle" value="Casual">
+          Casual
+        </label>
+
+        <label class="check-label">
+          <input type="checkbox" name="deciderStyle" value="Laid Back">
+          Laid Back
+        </label>
+      </fieldset>
+
+      <label for="suggestionSource">Show suggestions from</label>
+      <select id="suggestionSource">
+        <option value="all">All suggestions</option>
+        <option value="saved">My saved outfits</option>
+        <option value="new">New combinations only</option>
+      </select>
+
+      <label class="check-label">
+        <input id="avoidRepeats" type="checkbox" checked>
+        Avoid recently worn outfits
+      </label>
+
+      <label for="repeatDays">Days to avoid</label>
+      <input id="repeatDays" type="number" min="1" max="365" value="7">
+
+      <button id="suggestOutfitsButton" class="primary" type="button">
+        Suggest Outfits
+      </button>
+
+      <button id="resetDismissedButton" type="button">
+        Allow Dismissed Suggestions Again
+      </button>
+    </div>
+
+    <p id="deciderStatus" role="status"></p>
+    <div id="suggestionGrid" class="outfit-grid"></div>
+
+    <button id="moreSuggestionsButton" class="primary"
+            type="button" hidden>Show More</button>
+
+    <p class="small-note">
+      Weather provided by
+      <a href="https://open-meteo.com/" target="_blank"
+         rel="noopener noreferrer">Open-Meteo</a>.
+    </p>
+  </section>
+
+  <!-- LAUNDRY -->
+  <section id="laundryPage" hidden>
+    <h2>Laundry Basket</h2>
+
+    <button id="reviewLaundryButton" class="primary" type="button">
+      Update Laundry
+    </button>
+
+    <button id="cleanAllButton" type="button">Mark All Clean</button>
+
+    <p id="laundryStatus" role="status"></p>
+    <div id="laundryGrid" class="clothing-grid"></div>
+  </section>
+
+  <!-- Offer an optional photo after saving or logging an outfit. -->
+<dialog id="afterOutfitPhotoDialog"
+        aria-labelledby="afterPhotoHeading">
+  <div class="photo-prompt">
+    <h3 id="afterPhotoHeading">Take a photo of you in your outfit! ♡</h3>
+    <p>Add a photo, or keep the outfit as it is.</p>
+
+    <!-- On a phone, capture requests the front-facing camera. -->
+    <label class="primary file-button">
+      Take Photo
+      <input id="takeOutfitPhoto" type="file"
+             accept="image/*" capture="user" hidden>
+    </label>
+
+    <!-- Without capture, she can choose an existing photo. -->
+    <label class="primary file-button">
+      Upload Photo
+      <input id="uploadOutfitPhoto" type="file"
+             accept="image/*" hidden>
+    </label>
+
+    <button id="skipOutfitPhoto" type="button">Not Now</button>
+    <p id="afterPhotoStatus" role="status"></p>
+  </div>
+</dialog>
+<!-- Full clothing details appear here when the info button is tapped. -->
+<dialog id="clothingInfoDialog" aria-labelledby="clothingInfoTitle">
+  <div class="photo-prompt">
+    <h3 id="clothingInfoTitle">Clothing Details</h3>
+    <div id="clothingInfoDetails"></div>
+
+    <button id="closeClothingInfo" class="primary" type="button">
+      Close
+    </button>
+  </div>
+</dialog>
+<!-- Show only the top three outfits for a selected clothing item. -->
+<dialog id="stylePieceDialog" aria-labelledby="stylePieceHeading">
+  <div class="photo-prompt">
+    <h3 id="stylePieceHeading">Style This Piece</h3>
+    <!-- Switch between new combinations and saved/worn outfits. -->
+<div class="button-row">
+  <button id="stylePieceNew" type="button" aria-pressed="true">
+    New Outfits
+  </button>
+
+  <button id="stylePieceExisting" type="button" aria-pressed="false">
+    Existing Outfits
+  </button>
+</div>
+
+    <p id="stylePieceStatus" role="status"></p>
+    <div id="stylePieceResults" class="outfit-grid"></div>
+
+    <button id="closeStylePiece" class="primary" type="button">
+      Close
+    </button>
+  </div>
+</dialog>
+<!-- Account controls and tutorial. -->
+<dialog id="settingsDialog" aria-labelledby="settingsHeading">
+  <div class="photo-prompt">
+    <h2 id="settingsHeading">Settings</h2>
+
+    <!-- Our existing email and Sign Out controls move here. -->
+    <div id="settingsAccountControls"></div>
+
+    <button id="openTutorialButton" class="primary" type="button">
+      How to Use Bree's Closet
+    </button>
+
+    <section id="tutorialPanel" hidden>
+      <h3 id="tutorialHeading"></h3>
+      <p id="tutorialText"></p>
+      <p id="tutorialProgress"></p>
+
+      <div class="button-row">
+        <button id="previousTutorialButton" type="button">Back</button>
+        <button id="nextTutorialButton" type="button">Next</button>
+      </div>
+    </section>
+
+    <button id="openDeleteAccountButton"
+            class="danger-button" type="button">
+      Delete Account
+    </button>
+
+    <button id="closeSettingsButton" type="button">Close</button>
+  </div>
+</dialog>
+
+<!-- Require a deliberate confirmation before deleting an account. -->
+<dialog id="deleteAccountDialog" aria-labelledby="deleteAccountHeading">
+  <form id="deleteAccountForm" class="photo-prompt">
+    <h3 id="deleteAccountHeading">Delete Your Account?</h3>
+
+    <p>
+      This permanently removes your account, cloud photos, clothes,
+      outfits, wear history, and dismissed suggestions.
+    </p>
+
+    <p>
+      Download a backup first if you want to keep a copy.
+      Backup files already downloaded are not deleted.
+    </p>
+
+    <label for="deleteAccountPassword">Your password</label>
+    <input id="deleteAccountPassword" type="password"
+           autocomplete="current-password" required>
+
+    <label for="deleteAccountConfirmation">Type DELETE to confirm</label>
+    <input id="deleteAccountConfirmation" type="text"
+           autocomplete="off" required>
+
+    <button id="confirmDeleteAccountButton"
+            class="danger-button" type="submit">
+      Permanently Delete Account
+    </button>
+
+    <button id="cancelDeleteAccountButton" type="button">Cancel</button>
+    <p id="deleteAccountStatus" role="status"></p>
+  </form>
+</dialog>
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-tabs" aria-label="Main navigation">
+    <button type="button" data-page="homePage"
+            class="active" aria-current="page">Home</button>
+
+    <button type="button" data-page="closetPage">My Closet</button>
+    <button type="button" data-page="outfitsPage">My Outfits</button>
+    <button type="button" data-page="deciderPage">Outfit Decider</button>
+    <button type="button" data-page="laundryPage">Laundry Basket</button>
+  </nav>
+
+  <!-- Keep these files in this order. -->
+   <!-- Load Supabase's browser library, then our project settings. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+  <script src="script.js"></script>
+  <script src="laundry.js"></script>
+  <script src="outfits.js"></script>
+  <script src="history.js"></script>
+  <!-- Shared photo prompt for saving and logging outfits. -->
+    <script src="photos.js"></script>
+  <script src="decider.js"></script>
+  <!-- Load sign-in after the app's shared functions. -->
+   <!-- Switch shared storage to the cloud before starting sign-in. -->
+<script src="cloud.js"></script>
+<script src="auth.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>
