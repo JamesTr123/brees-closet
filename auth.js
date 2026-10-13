@@ -146,6 +146,14 @@ App.get("settingsAccountControls").appendChild(
 
     // The cloud connection is ready, so reveal the app.
     document.body.classList.remove("account-setup");
+    // Personalize Home, asking for a name if this account lacks one.
+await Profile.ensureName();
+
+// Stop if the user signed out while the name popup was open.
+if (
+  attempt !== Account.attempt ||
+  Account.user?.id !== user.id
+) return;
     // Show the first tutorial only after the account's app is visible.
 // A short delay also lets the remaining script files finish loading.
 setTimeout(function () {
@@ -277,6 +285,11 @@ App.get("loginForm").addEventListener("submit", async function (event) {
     Account.busy = false;
     App.busy(App.get("loginForm"), false);
     App.get("loginPassword").value = "";
+    // Always return to a hidden password when opening sign-in.
+App.get("showLoginPassword").checked = false;
+App.get("loginPassword").type = "password";
+App.get("accountName").value = "";
+App.get("welcomeHeading").textContent = "Welcome back ♡";
   }
 });
 
@@ -348,6 +361,15 @@ App.get("createAccountButton").addEventListener(
 
     const email = App.get("loginEmail").value.trim();
     const password = App.get("loginPassword").value;
+    // Names are required for new accounts, but not ordinary sign-in.
+const displayName = App.get("accountName").value.trim();
+
+if (!displayName) {
+  App.get("loginStatus").textContent =
+    "Enter your name to create an account.";
+  App.get("accountName").focus();
+  return;
+}
 
     if (password.length < 8) {
       App.get("loginStatus").textContent =
@@ -366,7 +388,8 @@ const result = await Account.client.auth.signUp({
   password: password,
   options: {
     data: {
-      tutorial_pending: true
+      tutorial_pending: true,
+display_name: displayName
     }
   }
 });

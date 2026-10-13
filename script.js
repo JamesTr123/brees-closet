@@ -360,6 +360,8 @@ App.get("clothingForm").addEventListener("submit", async function (event) {
   };
 
   Clothing.busy = true;
+  // Make it clear that the photo and clothing details are saving.
+App.get("saveClothingButton").textContent = "Saving...";
   App.busy(App.get("clothingForm"), true);
   App.get("photoInput").disabled = true;
 
@@ -390,6 +392,9 @@ App.get("clothingForm").addEventListener("submit", async function (event) {
     alert("Clothing could not be saved. Please try again.");
   } finally {
     Clothing.busy = false;
+    // Restore the correct label after success or failure.
+App.get("saveClothingButton").textContent =
+  Clothing.editingId ? "Save Changes" : "Save to Closet";
     App.busy(App.get("clothingForm"), false);
     App.get("photoInput").disabled = false;
   }

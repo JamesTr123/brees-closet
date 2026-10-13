@@ -54,6 +54,8 @@ OutfitPhotos.save = async function (file) {
 
   const dialog = App.get("afterOutfitPhotoDialog");
   OutfitPhotos.busy = true;
+  // The disabled button also shows that uploading is in progress.
+App.get("skipOutfitPhoto").textContent = "Saving...";
   App.busy(dialog, true);
   App.get("afterPhotoStatus").textContent = "Saving your photo...";
 
@@ -99,6 +101,7 @@ OutfitPhotos.save = async function (file) {
       "The photo could not be saved. Try another photo or choose Not Now.";
   } finally {
     OutfitPhotos.busy = false;
+    App.get("skipOutfitPhoto").textContent = "Not Now";
     App.busy(dialog, false);
   }
 };

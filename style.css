@@ -787,3 +787,19 @@ body.account-setup > .bottom-tabs {
 body.tour-active {
   padding-bottom: calc(420px + env(safe-area-inset-bottom, 0px));
 }
+/* Match the name popup to the rest of the app. */
+#profileNameDialog {
+  width: calc(100% - 32px);
+  max-width: 420px;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow-y: auto;
+  border: 2px solid #a94370;
+  border-radius: 20px;
+  background: #fff5f8;
+  color: #49333d;
+}
+
+#profileNameDialog::backdrop {
+  background: rgba(73, 33, 53, 0.55);
+}

@@ -29,6 +29,10 @@
     <h2>Welcome to Bree's Closet ♡</h2>
 
     <form id="loginForm">
+        <!-- Used when creating an account; not required for signing in. -->
+<label for="accountName">Your name — for new accounts</label>
+<input id="accountName" type="text" maxlength="40"
+       autocomplete="given-name" placeholder="Your name">
       <label for="loginEmail">Email</label>
       <input id="loginEmail" type="email"
              autocomplete="username" required>
@@ -36,6 +40,10 @@
       <label for="loginPassword">Password</label>
       <input id="loginPassword" type="password"
              autocomplete="current-password" required>
+             <label class="check-label">
+  <input id="showLoginPassword" type="checkbox">
+  Show password
+</label>
 
       <button id="loginButton" class="primary" type="submit">
         Sign In
@@ -70,7 +78,8 @@
     <button id="openSettingsButton" class="primary" type="button">
   ⚙ Settings
 </button>
-    <h2>Welcome, Bree ♡</h2>
+    <!-- The account's name will be inserted here. -->
+<h2 id="welcomeHeading">Welcome back ♡</h2>
     <p>Build your closet and find your next favorite outfit.</p>
 
     <button id="backupButton" class="primary" type="button">
@@ -545,6 +554,23 @@
     <p id="deleteAccountStatus" role="status"></p>
   </form>
 </dialog>
+<!-- Ask existing users for their name, or edit it from Settings. -->
+<dialog id="profileNameDialog" aria-labelledby="profileNameHeading">
+  <form id="profileNameForm" class="photo-prompt">
+    <h3 id="profileNameHeading">What should we call you? ♡</h3>
+
+    <label for="profileNameInput">Your name</label>
+    <input id="profileNameInput" type="text" maxlength="40"
+           autocomplete="given-name" required>
+
+    <button id="saveProfileName" class="primary" type="submit">
+      Save Name
+    </button>
+
+    <button id="skipProfileName" type="button">Not Now</button>
+    <p id="profileNameStatus" role="status"></p>
+  </form>
+</dialog>
   <!-- BOTTOM NAVIGATION -->
   <nav class="bottom-tabs" aria-label="Main navigation">
     <button type="button" data-page="homePage"
@@ -571,6 +597,7 @@
    <!-- Switch shared storage to the cloud before starting sign-in. -->
 <script src="cloud.js"></script>
 <script src="auth.js"></script>
+<script src="profile.js"></script>
 <script src="settings.js"></script>
 <!-- Load the guided tour after Settings and account functions. -->
 <script src="tutorial.js"></script>
