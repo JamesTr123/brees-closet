@@ -1194,3 +1194,119 @@ label[for="outfitName"],
   .settings-top-row button { padding: 8px 6px; font-size: 10px; }
   #settingsClosetBreakdowns { grid-template-columns: 1fr; }
 }
+
+
+/* OUTFIT COLLAGES
+   Apply only when the outfit is displayed using clothing photos.
+   Selfies keep their existing appearance. */
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo) {
+  --collage-size: 180px;
+  --photo-size: 62%;
+  --second-left: 34%;
+  --second-top: 34%;
+  --third-left: 22%;
+  --third-top: 39%;
+
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: var(--collage-size);
+  aspect-ratio: 1;
+  padding: 0;
+  margin: 10px auto;
+  gap: 0;
+  overflow: visible;
+}
+
+/* Three pictures share the same square as two pictures. */
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo:nth-of-type(3)) {
+  --photo-size: 56%;
+  --second-left: 39%;
+  --second-top: 12%;
+}
+
+/* Four pictures form a small overlapping patchwork. */
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo:nth-of-type(4)) {
+  --photo-size: 48%;
+  --second-left: 46%;
+  --second-top: 5%;
+  --third-left: 5%;
+  --third-top: 45%;
+}
+
+/* Each photo looks like a small printed photograph. */
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo) > .clothing-photo {
+  position: absolute;
+  width: var(--photo-size);
+  height: var(--photo-size);
+  max-width: none;
+  margin: 0;
+  padding: 4px;
+  object-fit: contain;
+  background: white;
+  border: 2px solid white;
+  border-radius: 5px;
+  box-shadow: 0 3px 7px rgba(73, 33, 53, 0.18);
+}
+
+/* Tilt and overlap the first picture. */
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo) > .clothing-photo:nth-of-type(1) {
+  left: 6%;
+  top: 5%;
+  transform: rotate(-9deg);
+  z-index: 1;
+}
+
+/* The second picture overlaps the first. */
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo) > .clothing-photo:nth-of-type(2) {
+  left: var(--second-left);
+  top: var(--second-top);
+  transform: rotate(9deg);
+  z-index: 2;
+}
+
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo) > .clothing-photo:nth-of-type(3) {
+  left: var(--third-left);
+  top: var(--third-top);
+  transform: rotate(-7deg);
+  z-index: 3;
+}
+
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo) > .clothing-photo:nth-of-type(4) {
+  left: 45%;
+  top: 46%;
+  transform: rotate(8deg);
+  z-index: 4;
+}
+
+/* Center a single remaining clothing photo without tilting it. */
+:is(.outfit-photos, #outfitPreview, #logOutfitPreview,
+    .home-today-photos, .home-today-choices > button):has(> .clothing-photo) > .clothing-photo:only-of-type {
+  width: 80%;
+  height: 80%;
+  left: 10%;
+  top: 10%;
+  transform: none;
+}
+
+/* Use smaller collages in the compact Style This Piece cards. */
+#stylePieceResults .outfit-photos:has(> .clothing-photo) {
+  --collage-size: 132px;
+}
+
+/* Keep Home's small outfit-selection thumbnails small. */
+.home-today-choices > button:has(> .clothing-photo) {
+  --collage-size: 90px;
+  margin: 0;
+}
+
+
+
