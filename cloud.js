@@ -113,7 +113,7 @@ Cloud.resizePhoto = function (source) {
         canvas.toBlob(function (blob) {
           if (blob) resolve(blob);
           else reject(new Error("Photo conversion failed."));
-        }, "image/jpeg", 0.82);
+        }, "image/jpeg", 0.75);
       } catch (error) {
         reject(error);
       }
@@ -319,6 +319,10 @@ App.read = async function (names) {
 // Replace local writes with account-specific cloud writes.
 App.write = async function (changes) {
   if (!changes.length) return;
+  // Avoid saving a photo while cleanup is checking its references.
+if (Cloud.cleaningPhotos) {
+  throw new Error("Photo cleanup is running. Please try saving again shortly.");
+}
 
   const context = Cloud.context();
   Cloud.writesInProgress++;
@@ -357,3 +361,240 @@ App.write = async function (changes) {
     Cloud.writesInProgress--;
   }
 };
+// PHOTO CLEANUP
+// This runs only when the user presses the Settings button.
+Cloud.cleaningPhotos = false;
+
+Cloud.cleanupUnusedPhotos = async function () {
+  // Wait until this browser has finished its current saves.
+  if (Cloud.cleaningPhotos || Cloud.writesInProgress > 0) {
+    throw new Error(
+      "A save or cleanup is still finishing. Try again shortly."
+    );
+  }
+
+  // Remember which account started cleanup.
+  const context = Cloud.context();
+
+  Cloud.cleaningPhotos = true;
+
+  // Account deletion also checks this counter.
+  Cloud.writesInProgress++;
+
+  try {
+    const bucket = context.client.storage.from("closet-photos");
+
+    // Give newly uploaded photos 24 hours before considering removal.
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+
+    const files = [];
+    let offset = 0;
+
+    // List every photo in this account's folder.
+    // Read 100 at a time so large closets are fully checked.
+    while (true) {
+      Cloud.checkContext(context);
+
+      const result = await bucket.list(context.userId, {
+        limit: 100,
+        offset: offset,
+        sortBy: {
+          column: "name",
+          order: "asc"
+        }
+      });
+
+      if (result.error) throw result.error;
+
+      if (!Array.isArray(result.data)) {
+        throw new Error("The photo list could not be checked.");
+      }
+
+      files.push(...result.data);
+
+      if (result.data.length < 100) break;
+
+      offset += result.data.length;
+    }
+
+    // Read storage paths directly from the database.
+    // We don't need to download the pictures to check their paths.
+    const readUsedPaths = async function () {
+      const result = await context.client.rpc(
+        "read_closet_records",
+        {
+          p_collections: Cloud.collections
+        }
+      );
+
+      if (result.error) throw result.error;
+
+      Cloud.checkContext(context);
+
+      const used = new Set();
+
+      // Check clothing, outfits, history, and dismissed records.
+      for (const collection of Cloud.collections) {
+        const records = result.data?.[collection];
+
+        // Stop if we couldn't read the complete account.
+        // Missing data must never be mistaken for unused photos.
+        if (!Array.isArray(records)) {
+          throw new Error(
+            "Your closet could not be fully checked. " +
+            "No more photos were removed."
+          );
+        }
+
+        for (const record of records) {
+          if (!record || typeof record !== "object") {
+            throw new Error(
+              "A closet record could not be checked."
+            );
+          }
+
+          const photos = record._cloudPhotos;
+
+          if (
+            photos !== undefined &&
+            (
+              !photos ||
+              typeof photos !== "object" ||
+              Array.isArray(photos)
+            )
+          ) {
+            throw new Error(
+              "A photo reference could not be checked."
+            );
+          }
+
+          // Keep every photo referenced by this record.
+          for (const path of Object.values(photos || {})) {
+            if (
+              typeof path !== "string" ||
+              !path.startsWith(context.userId + "/")
+            ) {
+              throw new Error(
+                "A photo reference could not be checked."
+              );
+            }
+
+            used.add(path);
+          }
+        }
+      }
+
+      return used;
+    };
+
+    const used = await readUsedPaths();
+
+    // Find old files that no record currently uses.
+    const unused = files.filter(function (file) {
+      // Only consider the JPEG filenames created by our uploader.
+      // Ignore folders and any other files.
+      if (
+        !file.id ||
+        !/^[a-f0-9]{64}\.jpg$/.test(file.name)
+      ) {
+        return false;
+      }
+
+      const modified = Date.parse(
+        file.updated_at || file.created_at
+      );
+
+      // Keep recent photos and photos with an unknown date.
+      if (
+        !Number.isFinite(modified) ||
+        modified >= cutoff
+      ) {
+        return false;
+      }
+
+      const path = context.userId + "/" + file.name;
+
+      return !used.has(path);
+    });
+
+    let removed = 0;
+
+    // Delete in small groups.
+    for (let start = 0; start < unused.length; start += 100) {
+      // Recheck the records before each group of deletions.
+      const currentUsed = await readUsedPaths();
+
+      const paths = unused
+        .slice(start, start + 100)
+        .map(function (file) {
+          return context.userId + "/" + file.name;
+        })
+        .filter(function (path) {
+          return !currentUsed.has(path);
+        });
+
+      if (!paths.length) continue;
+
+      Cloud.checkContext(context);
+
+      const result = await bucket.remove(paths);
+
+      if (result.error) throw result.error;
+
+      Cloud.checkContext(context);
+
+      // Don't report success if Storage denied the deletions.
+      if (
+        !Array.isArray(result.data) ||
+        result.data.length !== paths.length
+      ) {
+        throw new Error(
+          "Not all unused photos were removed. " +
+          "Check your Storage permissions, then try again."
+        );
+      }
+
+      removed += result.data.length;
+
+      // Forget cached paths so removed files aren't reused.
+      // Photos still used by records can be downloaded again.
+      Cloud.downloads.clear();
+      Cloud.uploads.clear();
+      Cloud.photoPaths.clear();
+    }
+
+    return removed;
+  } finally {
+    // Allow normal saves again, even if cleanup encountered an error.
+    Cloud.cleaningPhotos = false;
+    Cloud.writesInProgress--;
+  }
+};
+
+// Connect the Settings button to cleanup.
+App.get("cleanupPhotosButton").addEventListener(
+  "click",
+  async function () {
+    if (!Account.user) return;
+
+    const button = this;
+    const status = App.get("cleanupPhotosStatus");
+
+    button.disabled = true;
+    status.textContent = "Checking for unused photos...";
+
+    try {
+      const removed = await Cloud.cleanupUnusedPhotos();
+
+      status.textContent = removed > 0
+        ? "Removed " + removed + " unused photo" +
+          (removed === 1 ? "." : "s.")
+        : "No unused photos are ready to remove. " +
+          "Photos uploaded within the last 24 hours are kept.";
+    } catch (error) {
+      status.textContent = "Cleanup stopped: " + error.message;
+    } finally {
+      button.disabled = false;
+    }
+  }
+);
