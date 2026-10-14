@@ -980,3 +980,60 @@ label[for="outfitName"],
 #suggestionsDialog #moreSuggestionsButton {
   display: none !important;
 }
+/* Prevent tossed cards from making the page scroll sideways. */
+#laundryPage {
+  overflow-x: clip;
+}
+
+/* Make the card feel draggable. */
+#laundrySwipeCard {
+  position: relative;
+  cursor: grab;
+
+  /* Keep ordinary up-and-down page scrolling available. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+#laundrySwipeCard:active {
+  cursor: grabbing;
+}
+
+/* Pink indicates a swipe toward laundry. */
+#laundrySwipeCard[data-direction="left"] {
+  border-color: #d63b80;
+}
+
+/* Green indicates a swipe toward clean. */
+#laundrySwipeCard[data-direction="right"] {
+  border-color: #329873;
+}
+
+/* Visible focus for keyboard users. */
+#laundrySwipeCard:focus-visible {
+  outline: 3px solid #db4485;
+  outline-offset: 4px;
+}
+
+/* Direction labels stay below the moving card. */
+.laundry-swipe-directions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  margin: 18px 4px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.laundry-swipe-directions span:first-child {
+  color: #a52b61;
+}
+
+.laundry-swipe-directions span:last-child {
+  color: #267957;
+}

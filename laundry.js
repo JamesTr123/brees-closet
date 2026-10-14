@@ -36,14 +36,11 @@ swipePanel.innerHTML = `
 
   <div id="laundrySwipeCard"></div>
 
-  <div id="laundrySwipeActions" class="button-row">
-    <button id="swipeToLaundry" class="primary" type="button">
-      ← In Laundry
-    </button>
-    <button id="swipeToClean" type="button">
-      Clean →
-    </button>
-  </div>
+ <!-- These are instructions, not clickable buttons. -->
+<div id="laundrySwipeActions" class="laundry-swipe-directions">
+  <span>← In Laundry</span>
+  <span>Clean →</span>
+</div>
 
   <button id="restartLaundrySwipe" class="primary"
           type="button" hidden>
@@ -233,10 +230,14 @@ Laundry.startSwipeReview = function () {
 // Display one clothing item at a time.
 Laundry.showSwipeCard = function () {
   const card = App.get("laundrySwipeCard");
+  // Start each clothing item in the middle.
+Laundry.resetSwipeCard();
   card.replaceChildren();
   Laundry.pointerStart = null;
 
   const item = Laundry.queue[Laundry.position];
+  // Hide the empty card when the review is finished.
+card.hidden = !item;
 
   App.get("laundrySwipeActions").hidden = !item;
   App.get("restartLaundrySwipe").hidden =
@@ -253,7 +254,7 @@ Laundry.showSwipeCard = function () {
   }
 
   App.get("laundryStatus").textContent =
-    "Swipe left for laundry, right for clean—or use the buttons.";
+    "Swipe left for laundry or right for clean.";
 
   App.get("laundrySwipeProgress").textContent =
     (Laundry.position + 1) + " of " + Laundry.queue.length;
@@ -270,7 +271,26 @@ Laundry.showSwipeCard = function () {
   card.append(App.photo(item), title, details);
 };
 
-// Save the current swipe decision and move to the next item.
+// Return the card to the middle after a short or cancelled swipe.
+Laundry.resetSwipeCard = function () {
+  const card = App.get("laundrySwipeCard");
+
+  // Stop any previous toss animation.
+  if (Laundry.tossAnimation) {
+    Laundry.tossAnimation.cancel();
+    Laundry.tossAnimation = null;
+  }
+
+  card.style.transition =
+    "transform 180ms ease, opacity 180ms ease";
+
+  card.style.transform = "translateX(0px) rotate(0deg)";
+  card.style.opacity = "1";
+
+  delete card.dataset.direction;
+};
+
+// Animate the choice, save it, then show the next clothing item.
 Laundry.answerSwipe = async function (inLaundry) {
   if (Laundry.busy) return;
 
@@ -278,28 +298,114 @@ Laundry.answerSwipe = async function (inLaundry) {
   if (!item) return;
 
   Laundry.setBusy(true);
+  Laundry.pointerStart = null;
+
+  const card = App.get("laundrySwipeCard");
 
   try {
-    await Laundry.saveStatus(item.id, inLaundry);
+    // Left is negative; right is positive.
+    const direction = inLaundry ? -1 : 1;
+
+    // Move far enough to leave the screen completely.
+    const distance =
+      window.innerWidth + card.getBoundingClientRect().width;
+
+    // Use a short fade if the phone's Reduce Motion setting is on.
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    card.dataset.direction = inLaundry ? "left" : "right";
+
+    App.get("laundryStatus").textContent =
+      "Saving your choice...";
+
+    // Begin at the card's current dragged position.
+    const animation = card.animate(
+      [
+        {
+          transform: getComputedStyle(card).transform,
+          opacity: 1
+        },
+        {
+          transform: reducedMotion
+            ? "none"
+            : "translateX(" + direction * distance +
+              "px) rotate(" + direction * 24 + "deg)",
+          opacity: 0
+        }
+      ],
+      {
+        duration: reducedMotion ? 100 : 320,
+        easing: "cubic-bezier(0.4, 0, 0.8, 1)",
+        fill: "forwards"
+      }
+    );
+
+    Laundry.tossAnimation = animation;
+
+    // Save while the animation plays.
+    // Only advance after both have finished.
+    await Promise.all([
+      animation.finished.catch(function () {}),
+      Laundry.saveStatus(item.id, inLaundry)
+    ]);
+
+    // Don't advance an old review if its queue was reset.
+    if (Laundry.queue[Laundry.position] !== item) return;
+
     item.inLaundry = inLaundry;
 
-    // Update other app features without restarting this review.
+    // Update the other features without restarting this review.
     App.changed();
 
     Laundry.position++;
     Laundry.showSwipeCard();
   } catch (error) {
+    // Bring this same item back if saving failed.
+    Laundry.resetSwipeCard();
+
+    App.get("laundryStatus").textContent =
+      "That change wasn't saved. Swipe again to retry.";
+
     alert("That change could not be saved. Please try again.");
   } finally {
+    Laundry.resetSwipeCard();
     Laundry.setBusy(false);
   }
 };
 
-// Swipe detection also works by dragging with a mouse.
-App.get("laundrySwipeCard").addEventListener(
-  "pointerdown", function (event) {
+// The same controls support touch and mouse dragging.
+const laundrySwipeCard = App.get("laundrySwipeCard");
+
+// Allow keyboard users to focus the card.
+laundrySwipeCard.tabIndex = 0;
+
+laundrySwipeCard.setAttribute("role", "group");
+
+laundrySwipeCard.setAttribute(
+  "aria-label",
+  "Clothing to review. Left for laundry, right for clean."
+);
+
+// Remember where the finger or mouse started.
+laundrySwipeCard.addEventListener(
+  "pointerdown",
+  function (event) {
     if (Laundry.busy || !Laundry.queue[Laundry.position]) return;
-    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    // Ignore an extra finger while already dragging.
+    if (Laundry.pointerStart) return;
+
+    // Only use the main mouse button.
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    Laundry.resetSwipeCard();
+
+    // Follow the finger immediately, without a transition delay.
+    this.style.transition = "none";
 
     Laundry.pointerStart = {
       x: event.clientX,
@@ -311,40 +417,113 @@ App.get("laundrySwipeCard").addEventListener(
   }
 );
 
-App.get("laundrySwipeCard").addEventListener(
-  "pointerup", function (event) {
+// Move and tilt the card while dragging.
+laundrySwipeCard.addEventListener(
+  "pointermove",
+  function (event) {
     const start = Laundry.pointerStart;
-    Laundry.pointerStart = null;
 
-    if (!start || start.id !== event.pointerId) return;
+    if (
+      Laundry.busy ||
+      !start ||
+      start.id !== event.pointerId
+    ) {
+      return;
+    }
 
     const horizontal = event.clientX - start.x;
     const vertical = event.clientY - start.y;
 
-    // Ignore taps and movements that are mostly vertical.
+    // Leave normal vertical scrolling alone.
+    if (Math.abs(horizontal) < Math.abs(vertical)) {
+      this.style.transform = "translateX(0px) rotate(0deg)";
+      delete this.dataset.direction;
+      return;
+    }
+
+    // Tilt slightly in the direction of the swipe.
+    const tilt = Math.max(
+      -20,
+      Math.min(20, horizontal / 18)
+    );
+
+    this.style.transform =
+      "translateX(" + horizontal +
+      "px) rotate(" + tilt + "deg)";
+
+    this.dataset.direction =
+      horizontal < 0 ? "left" : "right";
+  }
+);
+
+// Decide whether the released swipe was strong enough.
+laundrySwipeCard.addEventListener(
+  "pointerup",
+  function (event) {
+    const start = Laundry.pointerStart;
+
+    if (!start || start.id !== event.pointerId) return;
+
+    Laundry.pointerStart = null;
+
+    if (this.hasPointerCapture(event.pointerId)) {
+      this.releasePointerCapture(event.pointerId);
+    }
+
+    const horizontal = event.clientX - start.x;
+    const vertical = event.clientY - start.y;
+
+    // A tap, short swipe, or mostly vertical movement saves nothing.
     if (
+      Laundry.busy ||
       Math.abs(horizontal) < 60 ||
       Math.abs(horizontal) < Math.abs(vertical) * 1.5
-    ) return;
+    ) {
+      Laundry.resetSwipeCard();
+      return;
+    }
 
     // Left means laundry; right means clean.
     Laundry.answerSwipe(horizontal < 0);
   }
 );
 
-App.get("laundrySwipeCard").addEventListener(
-  "pointercancel", function () {
-    Laundry.pointerStart = null;
-  }
+// Return to the middle if the browser interrupts a drag.
+function cancelLaundryDrag(event) {
+  const start = Laundry.pointerStart;
+
+  if (!start || start.id !== event.pointerId) return;
+
+  Laundry.pointerStart = null;
+  Laundry.resetSwipeCard();
+}
+
+laundrySwipeCard.addEventListener(
+  "pointercancel",
+  cancelLaundryDrag
 );
 
-App.get("swipeToLaundry").addEventListener("click", function () {
-  Laundry.answerSwipe(true);
-});
+laundrySwipeCard.addEventListener(
+  "lostpointercapture",
+  cancelLaundryDrag
+);
 
-App.get("swipeToClean").addEventListener("click", function () {
-  Laundry.answerSwipe(false);
-});
+// Arrow keys also work when the card is focused on a computer.
+laundrySwipeCard.addEventListener(
+  "keydown",
+  function (event) {
+    if (
+      event.key !== "ArrowLeft" &&
+      event.key !== "ArrowRight"
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    Laundry.answerSwipe(event.key === "ArrowLeft");
+  }
+);
 
 // Switch between grid and swipe modes.
 App.get("laundryGridMode").addEventListener("click", function () {
