@@ -837,9 +837,7 @@ card.dataset.combinationKey = combinationKey;
 
   const title = document.createElement("h3");
   title.textContent = "#" + rank + " — " +
-    (candidate.saved
-      ? candidate.saved.name || "Unnamed Outfit"
-      : "New Combination");
+  (candidate.saved ? "Saved Outfit" : "New Combination");
 
   const photos = document.createElement("div");
   photos.className = "outfit-photos";
@@ -880,6 +878,17 @@ if (candidate.saved && candidate.saved.photo) {
   explanation.textContent = reasons.join(" • ");
 
   content.append(title, photos, explanation);
+  // Log this suggestion directly, whether saved or new.
+const log = document.createElement("button");
+log.type = "button";
+log.className = "primary";
+log.textContent = "Log Outfit";
+
+log.addEventListener("click", function () {
+  History.openLog(candidate.ids);
+});
+
+content.appendChild(log);
 
   if (!candidate.saved) {
     const nameLabel = document.createElement("label");
@@ -927,7 +936,8 @@ if (candidate.saved && candidate.saved.photo) {
             store: "outfits",
             value: {
               id: crypto.randomUUID(),
-              name: name.value.trim(),
+              // Keep this field empty for compatibility with existing records.
+name: "",
               clothingIds: candidate.ids,
               favorite: star.checked,
               createdAt: new Date().toISOString()
@@ -946,7 +956,8 @@ if (candidate.saved && candidate.saved.photo) {
       }
     });
 
-    content.append(nameLabel, starLabel, save);
+    // No outfit naming field.
+content.append(starLabel, save);
   }
 
   const dismiss = document.createElement("button");
@@ -981,11 +992,10 @@ if (candidate.saved && candidate.saved.photo) {
 card.dataset.matchScore = String(candidate.score);
 // Keep the correct title when the top three cards are reordered.
 card.dataset.outfitLabel = candidate.saved
-  ? candidate.saved.name || "Unnamed Outfit"
+  ? "Saved Outfit"
   : candidate.last
     ? "Previously Worn Outfit"
     : "New Combination";
-destination.appendChild(card);
 
 // Only NEW combinations are limited to three.
 if (stylingPiece && Decider.pieceMode === "new") {

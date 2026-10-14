@@ -803,3 +803,74 @@ body.tour-active {
 #profileNameDialog::backdrop {
   background: rgba(73, 33, 53, 0.55);
 }
+/* Logging always opens in its own phone-friendly popup. */
+#logOutfitDialog {
+  width: calc(100% - 24px);
+  max-width: 850px;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow-y: auto;
+  border: 3px solid #ec428c;
+  border-radius: 22px;
+  background: white;
+  color: #49333d;
+}
+
+#logOutfitDialog::backdrop {
+  background: rgba(73, 33, 53, 0.55);
+}
+
+#logOutfitPanel {
+  margin: 0;
+  background: white;
+}
+
+/* Show outfits as selectable photo cards. */
+#logOutfitGrid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.log-outfit-choice {
+  min-width: 0;
+  padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: #fff0f6;
+  color: #49333d;
+}
+
+.log-outfit-choice[aria-pressed="true"] {
+  border-color: #c5236b;
+  background: #f8d1e1;
+  color: #49333d;
+}
+
+.log-outfit-choice .clothing-photo {
+  height: 110px;
+}
+
+.log-outfit-choice .outfit-selfie {
+  max-height: 190px;
+}
+
+.log-outfit-choice p {
+  margin: 6px 0;
+  font-size: 12px;
+}
+
+/* Keep the selected preview reasonably small. */
+#logOutfitPreview .clothing-photo {
+  height: 130px;
+}
+
+#logOutfitPreview .outfit-selfie {
+  max-height: 240px;
+}
+
+/* Keep the old input available to existing code,
+   but remove naming from the visible builder. */
+label[for="outfitName"],
+#outfitName {
+  display: none !important;
+}

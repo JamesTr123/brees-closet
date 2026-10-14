@@ -246,12 +246,15 @@ App.get("clearOutfitFilters").addEventListener("click", function () {
   Outfits.renderChoices();
 });
 
-// Save the outfit and optionally its wear date.
+// Save or log a combination, reusing it if already saved.
 App.get("saveOutfitButton").addEventListener("click", async function () {
   if (Outfits.busy) return;
 
   Outfits.busy = true;
   App.busy(App.get("outfitBuilder"), true);
+  App.get("saveOutfitButton").textContent = "Saving...";
+
+  let saved = null;
 
   try {
     const data = await App.read(["clothes"]);
@@ -261,78 +264,53 @@ App.get("saveOutfitButton").addEventListener("click", async function () {
     });
 
     if (pieces.length !== Outfits.selected.size) {
-      alert("A selected item was deleted. Please choose again.");
-      await Outfits.loadChoices();
-      return;
+      throw new Error("A selected item was deleted. Please choose again.");
     }
 
     const tops = pieces.filter(function (item) {
       return item.category === "Top";
     });
 
-    const bottoms = pieces.filter(function (item) {
-      return item.category === "Bottom";
-    });
-
     const baseTops = tops.filter(function (item) {
       return !item.canLayer;
     });
 
-    if (!tops.length || tops.length > 3 || bottoms.length !== 1) {
-      alert("Choose one bottom and one to three tops.");
-      return;
-    }
-
     if (tops.length > 1 && baseTops.length > 1) {
-      alert("Extra tops must be marked as able to go over another top.");
-      return;
+      throw new Error(
+        "Extra tops must be marked as able to go over another top."
+      );
     }
 
-    if (Outfits.logDate && !History.validDate(Outfits.logDate)) {
-      alert("Reopen logging and choose a valid date.");
-      return;
-    }
+    saved = await History.commitCombination(
+      [...Outfits.selected],
+      Outfits.logDate,
+      Outfits.favorite,
+      Outfits.photo || ""
+    );
 
-    const outfit = {
-      id: crypto.randomUUID(),
-      name: App.get("outfitName").value.trim(),
-      // Empty means the outfit will use its clothing-piece photos.
-photo: Outfits.photo,
-      clothingIds: pieces.map(function (item) {
-        return item.id;
-      }),
-      favorite: Outfits.favorite,
-      createdAt: new Date().toISOString()
-    };
-
-    const changes = [{ store: "outfits", value: outfit }];
-
-    if (Outfits.logDate) {
-      changes.push({
-        store: "history",
-        value: History.makeEntry(outfit, Outfits.logDate)
-      });
-    }
-
-    await App.write(changes);
     Outfits.favoritesOnly = false;
     Outfits.closeBuilder();
     App.changed();
-    // If this outfit was also logged, find its new history entry.
-const newWearEntry = changes.find(function (change) {
-  return change.store === "history";
-});
-
-// Offer a photo after saving successfully.
-await OutfitPhotos.offer(
-  outfit.id,
-  newWearEntry ? newWearEntry.value.id : null
-);
   } catch (error) {
-    alert("The outfit could not be saved.");
+    alert(error.message);
   } finally {
     Outfits.busy = false;
     App.busy(App.get("outfitBuilder"), false);
+
+    App.get("saveOutfitButton").textContent = Outfits.logDate
+      ? "Log Outfit — " + History.formatDate(Outfits.logDate)
+      : "Save Outfit";
+  }
+
+  if (saved) {
+    try {
+      await OutfitPhotos.offer(
+        saved.outfit.id,
+        saved.entry ? saved.entry.id : null
+      );
+    } catch (error) {
+      alert("Outfit saved, but the photo prompt could not open.");
+    }
   }
 });
 
@@ -370,7 +348,8 @@ Outfits.renderSaved = async function () {
       card.className = "saved-outfit-card";
 
       const title = document.createElement("h3");
-      title.textContent = outfit.name || "Unnamed Outfit";
+      // Outfit photos identify the outfit instead of a name.
+title.hidden = true;
 
       const key = App.signature(outfit.clothingIds);
 
@@ -474,6 +453,17 @@ if (outfit.photo) {
           remove.disabled = false;
         }
       });
+
+const log = document.createElement("button");
+log.type = "button";
+log.className = "primary";
+log.textContent = "Log Outfit";
+
+log.addEventListener("click", function () {
+  History.openLog(outfit.clothingIds);
+});
+
+card.appendChild(log);
 
       card.append(title, lastWorn, photos, note, star, remove);
       grid.appendChild(card);

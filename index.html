@@ -197,28 +197,69 @@
     <div id="savedOutfitGrid" class="outfit-grid"></div>
 
     <!-- Separate section for logging what she wore. -->
-    <section id="logOutfitPanel" class="panel" hidden>
-      <h3>Log an Outfit</h3>
+   <!-- Logging opens in its own popup from anywhere in the app. -->
+<dialog id="logOutfitDialog" aria-labelledby="logOutfitHeading">
+  <section id="logOutfitPanel" class="photo-prompt" hidden>
+    <h3 id="logOutfitHeading">Log an Outfit</h3>
 
-      <label for="wearDate">Date worn</label>
-      <input id="wearDate" type="date">
+    <label for="wearDate">Date worn</label>
+    <input id="wearDate" type="date">
 
-      <label for="logOutfitSelect">Choose a saved outfit</label>
-      <select id="logOutfitSelect"></select>
+    <label for="logSearch">Search clothing in outfits</label>
+    <input id="logSearch" type="search"
+           placeholder="Example: jeans or blue sweatshirt">
 
-      <div id="logOutfitPreview" class="outfit-photos"></div>
+    <div class="filter-grid">
+      <div>
+        <label for="logColorFilter">Color</label>
+        <select id="logColorFilter">
+          <option value="">All colors</option>
+        </select>
+      </div>
 
-      <button id="logSavedButton" class="primary" type="button">
-        Log Selected Outfit
-      </button>
+      <div>
+        <label for="logTypeFilter">Clothing type</label>
+        <select id="logTypeFilter">
+          <option value="">All types</option>
+        </select>
+      </div>
 
-      <button id="createAndLogButton" class="primary" type="button">
-        ♡ Create a New Outfit to Log
-      </button>
+      <div>
+        <label for="logStyleFilter">Style</label>
+        <select id="logStyleFilter">
+          <option value="">All styles</option>
+          <option value="Fancy">Fancy</option>
+          <option value="Athletic">Athletic</option>
+          <option value="Casual">Casual</option>
+          <option value="Laid Back">Laid Back</option>
+        </select>
+      </div>
+    </div>
 
-      <button id="closeLogButton" type="button">Cancel</button>
-      <p id="logStatus" role="status"></p>
-    </section>
+    <label class="check-label">
+      <input id="logFavoritesOnly" type="checkbox">
+      Favorites only
+    </label>
+
+    <p id="logResultsStatus" role="status"></p>
+    <div id="logOutfitGrid" class="outfit-grid"></div>
+
+    <h3>Selected Outfit</h3>
+    <div id="logOutfitPreview" class="outfit-photos"></div>
+
+    <button id="logSavedButton" class="primary"
+            type="button" disabled>
+      Log Outfit
+    </button>
+
+    <button id="createAndLogButton" type="button">
+      ♡ Put Together an Outfit
+    </button>
+
+    <button id="closeLogButton" type="button">Cancel</button>
+    <p id="logStatus" role="status"></p>
+  </section>
+</dialog>
 
     <!-- The builder is shared by Add Outfit and Log an Outfit. -->
      <!-- A dialog opens above the page instead of below saved outfits. -->
