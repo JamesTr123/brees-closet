@@ -999,6 +999,9 @@ card.dataset.outfitLabel = candidate.saved
     ? "Previously Worn Outfit"
     : "New Combination";
 
+    // Show the completed outfit card in the results grid.
+destination.appendChild(card);
+
 // Only NEW combinations are limited to three.
 if (stylingPiece && Decider.pieceMode === "new") {
   // Sort every card currently in the popup by recommendation score.
