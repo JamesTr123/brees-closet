@@ -11,9 +11,9 @@ Tour.steps = [
     page: "homePage",
     title: "Welcome to Bree's Closet ♡",
     text:
-      "Home is your starting point. Settings contains your email, " +
-      "this tutorial, Sign Out, and Delete Account. " +
-      "Back Up Closet downloads a copy of your saved information."
+      "Home shows today's outfit, quick closet stats, and your strongest match. " +
+      "Use Log an Outfit or Pick My Outfit to get started. " +
+      "Settings in the top right has Profile, Navigation, and Storage tabs."
   },
   {
     page: "closetPage",
@@ -48,7 +48,7 @@ Tour.steps = [
       "Update Laundry shows recently worn clothes first. " +
       "Check items that are in the laundry. Swipe Mode reviews clothes " +
       "worn in the last four days: left means laundry, right means clean. " +
-      "You can also use the buttons. You're ready!"
+      "The card follows your swipe and tosses away when you choose. You're ready!"
   }
 ];
 

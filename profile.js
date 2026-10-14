@@ -22,6 +22,9 @@ App.get("closetHeading").textContent =
     typeof name === "string" && name.trim()
       ? "Welcome, " + name.trim() + "! ♡"
       : "Welcome back ♡";
+
+  // Refresh the name and email shown in Settings too.
+  if (typeof Settings !== "undefined") Settings.renderAccount();
 };
 
 // Open the name form.
@@ -117,13 +120,14 @@ App.get("profileNameDialog").addEventListener("close", function () {
   if (finish) finish();
 });
 
-// Add Change Name to Settings without rearranging its HTML.
+// Put Change Name in the Profile tab of Settings.
 const changeNameButton = document.createElement("button");
+changeNameButton.id = "changeProfileNameButton";
 changeNameButton.type = "button";
 changeNameButton.className = "primary";
 changeNameButton.textContent = "Change My Name";
 
-App.get("openTutorialButton").before(changeNameButton);
+App.get("profileSettingsActions").appendChild(changeNameButton);
 
 changeNameButton.addEventListener("click", function () {
   Profile.open();

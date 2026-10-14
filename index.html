@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="Bree's Closet">
 </head>
 
-<body class="account-setup"></body>
+<body class="account-setup">
   <header>
     <h1 id="closetHeading">My Closet ♡</h1>
     <p>Your clothes. Your outfits. Your style.</p>
@@ -73,25 +73,47 @@
     <p id="loginStatus" role="status"></p>
   </div>
 </section>
-  <!-- HOME -->
+  <!-- HOME: a quick look at today and the closet. -->
   <section id="homePage">
-    <button id="openSettingsButton" class="primary" type="button">
-  ⚙ Settings
-</button>
-    <!-- The account's name will be inserted here. -->
-<h2 id="welcomeHeading">Welcome back ♡</h2>
-    <p>Build your closet and find your next favorite outfit.</p>
+    <div class="home-top-row">
+      <div>
+        <span class="eyebrow">YOUR DAILY CLOSET</span>
+        <h2 id="welcomeHeading">Welcome back ♡</h2>
+      </div>
+      <button id="openSettingsButton" type="button">⚙ Settings</button>
+    </div>
 
-    <button id="backupButton" class="primary" type="button">
-      Back Up Closet
-    </button>
+    <article class="home-today-card" aria-labelledby="homeTodayHeading">
+      <div class="home-card-heading">
+        <h3 id="homeTodayHeading">Today's Outfit</h3>
+        <span id="homeTodayDate" class="home-date"></span>
+      </div>
+      <!-- A logged selfie appears here, or photos of the clothing pieces. -->
+      <div id="homeTodayPhotos" class="home-today-photos"></div>
+      <p id="homeTodayMessage" role="status">Loading your day...</p>
+      <div id="homeTodayChoices" class="home-today-choices" hidden></div>
+      <div class="home-actions">
+        <button id="homeLogButton" class="primary" type="button">Log an Outfit</button>
+        <button id="homeDeciderButton" type="button">Pick My Outfit</button>
+      </div>
+    </article>
 
-    <label class="primary file-button">
-      Restore Backup
-      <input id="restoreInput" type="file" accept=".json" hidden>
-    </label>
+    <div class="home-stats" aria-label="A quick look at your closet">
+      <div><strong id="homeClothesCount">—</strong><span>Clothing items</span></div>
+      <div><strong id="homeOutfitsCount">—</strong><span>Saved outfits</span></div>
+      <div><strong id="homeLaundryCount">—</strong><span>In laundry</span></div>
+    </div>
 
-    <p id="backupStatus" role="status"></p>
+    <article class="home-match-card" aria-labelledby="homeMatchHeading">
+      <div>
+        <span class="eyebrow">YOUR NEXT LOOK</span>
+        <h3 id="homeMatchHeading">Today's strongest match</h3>
+        <p id="homeMatchNote">Checking your available clothes...</p>
+      </div>
+      <strong id="homeMatchScore" aria-label="Highest outfit recommendation score">—</strong>
+      <button id="homeMatchButton" type="button">Explore Outfit Decider →</button>
+    </article>
+    <p id="homeStatus" role="status" class="small-note"></p>
   </section>
 
   <!-- MY CLOSET -->
@@ -574,45 +596,87 @@
 </dialog>
 <!-- Account controls and tutorial. -->
 <dialog id="settingsDialog" aria-labelledby="settingsHeading">
-  <div class="photo-prompt">
-    <h2 id="settingsHeading">Settings</h2>
-
-    <!-- Our existing email and Sign Out controls move here. -->
-    <div id="settingsAccountControls"></div>
-
-    <button id="openTutorialButton" class="primary" type="button">
-      How to Use Bree's Closet
-    </button>
-    <!-- Remove old photos that the account no longer uses. -->
-<button id="cleanupPhotosButton" class="primary" type="button">
-  Free Up Photo Space
-</button>
-
-<p class="small-note">
-  Removes unused photos. Run this while your account
-  isn't being edited on another device.
-  Photos uploaded within the last 24 hours are kept.
-</p>
-
-<p id="cleanupPhotosStatus" role="status"></p>
-
-    <section id="tutorialPanel" hidden>
-      <h3 id="tutorialHeading"></h3>
-      <p id="tutorialText"></p>
-      <p id="tutorialProgress"></p>
-
-      <div class="button-row">
-        <button id="previousTutorialButton" type="button">Back</button>
-        <button id="nextTutorialButton" type="button">Next</button>
+  <div class="settings-shell">
+    <!-- Account actions stay visible above every Settings tab. -->
+    <div class="settings-sticky-top">
+      <div class="settings-top-row">
+        <h2 id="settingsHeading">Settings</h2>
+        <div id="settingsHeaderAccountActions" class="settings-account-actions">
+          <!-- The existing Sign Out button moves here after sign-in. -->
+          <button id="openDeleteAccountButton" class="danger-button" type="button">Delete Account</button>
+        </div>
+        <button id="closeSettingsButton" type="button" aria-label="Close Settings">✕</button>
       </div>
+      <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+        <button id="settingsTabProfile" type="button" role="tab" data-settings-tab="profile"
+                aria-selected="true" aria-controls="settingsProfilePanel">Profile</button>
+        <button id="settingsTabNavigation" type="button" role="tab" data-settings-tab="navigation"
+                aria-selected="false" aria-controls="settingsNavigationPanel" tabindex="-1">Navigation</button>
+        <button id="settingsTabStorage" type="button" role="tab" data-settings-tab="storage"
+                aria-selected="false" aria-controls="settingsStoragePanel" tabindex="-1">Storage</button>
+      </div>
+    </div>
+
+    <section id="settingsProfilePanel" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabProfile">
+      <div class="settings-profile-card">
+        <h3 id="settingsProfileName">Your Profile</h3>
+        <p id="settingsProfileEmail"></p>
+        <div id="profileSettingsActions"></div>
+      </div>
+      <!-- Existing account/retry controls keep their original IDs. -->
+      <div id="settingsAccountControls" hidden></div>
+      <h3>Your Closet in Numbers</h3>
+      <div id="settingsClosetStats" class="settings-stats"></div>
+      <p id="settingsStatsStatus" class="small-note" role="status"></p>
+      <div id="settingsClosetBreakdowns"></div>
     </section>
 
-    <button id="openDeleteAccountButton"
-            class="danger-button" type="button">
-      Delete Account
-    </button>
+    <section id="settingsNavigationPanel" class="settings-panel" role="tabpanel"
+             aria-labelledby="settingsTabNavigation" hidden>
+      <h3>A little help getting around</h3>
+      <button id="openTutorialButton" class="primary" type="button">Walk Me Through the App</button>
+      <h3>Common Questions</h3>
+      <div class="settings-faq">
+        <details><summary>How do I log what I wore?</summary><p>Tap Log an Outfit on Home or in My Outfits. Select a saved outfit or tap Put Together an Outfit, choose the date, and log it. A new combination is also saved to My Outfits.</p></details>
+        <details><summary>What does the Match meter mean?</summary><p>It shows recommendation strength from 0 to 100: blue is lower and red is higher. Weather fit, favorites, similarity, colors, and wear history affect the score. It measures the recommendation, not warmth.</p></details>
+        <details><summary>Why is Home's score different from my filtered results?</summary><p>Home checks any style and avoids outfits worn in the last seven days. It uses today's loaded weather, or any warmth until weather is loaded. Your Outfit Decider filters may narrow that list.</p></details>
+        <details><summary>Why am I not getting suggestions?</summary><p>Check that you have available tops and bottoms with compatible styles. Items in laundry, dismissed combinations, warmth choices, and recent-wear filters can reduce the results. Try a broader warmth range or change the repeat filter.</p></details>
+        <details><summary>How do I see only new or saved outfits?</summary><p>Tap Suggest Outfits, then use ALL, My Saved Outfits, or New Combinations at the top. They show up to eight, five, or three outfits respectively, strongest first.</p></details>
+        <details><summary>Why is Laundry Swipe Mode empty?</summary><p>Swipe Mode checks clothing logged in the last four calendar days. Log an outfit first, or use Update Laundry in Grid Mode to check any clothing. Swipe left for laundry and right for clean.</p></details>
+        <details><summary>Can I use my closet on another device?</summary><p>Sign in with the same email and password. Your cloud closet belongs to that account. Return to the app or refresh to load changes made on another device.</p></details>
+        <details><summary>Does using a photo in several outfits use extra storage?</summary><p>Outfits reference their clothing items, so showing the same clothing photo in several outfits doesn't create extra photo files. New outfit selfies do use additional space.</p></details>
+        <details><summary>What does Free Up Photo Space remove?</summary><p>It removes older cloud photos that no clothing, outfit, or history record uses. Photos uploaded within the last 24 hours are kept. Run it while the same account isn't being edited on another device.</p></details>
+        <details><summary>What do backup and restore do?</summary><p>Backup downloads clothing, outfits, wear history, dismissed suggestions, and their photos into a JSON file. Restore adds that data to the signed-in closet; matching record IDs use the backup details, and other records stay. It doesn't restore an account password or change your name.</p></details>
+      </div>
+      <!-- Retain these old IDs for compatibility with existing scripts. -->
+      <section id="tutorialPanel" hidden>
+        <h3 id="tutorialHeading"></h3><p id="tutorialText"></p><p id="tutorialProgress"></p>
+        <button id="previousTutorialButton" type="button">Back</button>
+        <button id="nextTutorialButton" type="button">Next</button>
+      </section>
+    </section>
 
-    <button id="closeSettingsButton" type="button">Close</button>
+    <section id="settingsStoragePanel" class="settings-panel" role="tabpanel"
+             aria-labelledby="settingsTabStorage" hidden>
+      <h3>Keep your closet safe</h3>
+      <div class="settings-storage-card">
+        <h4>Photo Cleanup</h4>
+        <p>Remove photos that your closet and wear history no longer use.</p>
+        <button id="cleanupPhotosButton" class="primary" type="button">Free Up Photo Space</button>
+        <p class="small-note">Run while this account isn't being edited on another device. Photos uploaded within the last 24 hours are kept.</p>
+        <p id="cleanupPhotosStatus" role="status"></p>
+      </div>
+      <div class="settings-storage-card">
+        <h4>A Copy for Safekeeping</h4>
+        <p>Your cloud saves work across devices. A downloaded backup gives you a separate copy to keep.</p>
+        <button id="backupButton" class="primary" type="button">Back Up Closet</button>
+        <label class="primary file-button">
+          Restore Closet
+          <input id="restoreInput" type="file" accept=".json" hidden>
+        </label>
+        <p id="backupStatus" role="status"></p>
+      </div>
+    </section>
   </div>
 </dialog>
 
@@ -690,10 +754,12 @@
   <!-- Load sign-in after the app's shared functions. -->
    <!-- Switch shared storage to the cloud before starting sign-in. -->
 <script src="cloud.js"></script>
-<script src="auth.js"></script>
 <script src="profile.js"></script>
 <script src="settings.js"></script>
 <!-- Load the guided tour after Settings and account functions. -->
 <script src="tutorial.js"></script>
+<script src="dashboard.js"></script>
+<!-- Start sign-in after all feature files have been defined. -->
+<script src="auth.js"></script>
 </body>
 </html>

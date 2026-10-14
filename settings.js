@@ -1,26 +1,65 @@
-// SETTINGS AND ACCOUNT DELETION
-const Settings = {
-  deleting: false
+// SETTINGS TABS AND ACCOUNT DELETION
+const Settings = { deleting: false, activeTab: "profile" };
+
+// Display account text safely, without putting names into HTML strings.
+Settings.renderAccount = function () {
+  const user = typeof Account !== "undefined" ? Account.user : null;
+  App.get("settingsProfileName").textContent =
+    user?.user_metadata?.display_name?.trim() || "Your Profile";
+  App.get("settingsProfileEmail").textContent = user?.email || "";
 };
 
-// Open Settings.
-App.get("openSettingsButton").addEventListener("click", function () {
-  if (!Account.user) return;
-
-  // The old tutorial area is no longer used.
-  App.get("tutorialPanel").hidden = true;
-
-  if (!App.get("settingsDialog").open) {
-    App.get("settingsDialog").showModal();
+// Only the selected Settings section is visible.
+Settings.selectTab = function (name) {
+  const panels = {
+    profile: "settingsProfilePanel",
+    navigation: "settingsNavigationPanel",
+    storage: "settingsStoragePanel"
+  };
+  if (!panels[name]) return;
+  Settings.activeTab = name;
+  for (const [key, id] of Object.entries(panels)) {
+    App.get(id).hidden = key !== name;
   }
+  document.querySelectorAll("[data-settings-tab]").forEach(function (button) {
+    const selected = button.dataset.settingsTab === name;
+    button.setAttribute("aria-selected", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+  App.get("settingsDialog").scrollTop = 0;
+};
+
+const settingsTabButtons = [...document.querySelectorAll("[data-settings-tab]")];
+settingsTabButtons.forEach(function (button, index) {
+  button.addEventListener("click", function () {
+    Settings.selectTab(this.dataset.settingsTab);
+  });
+  // Arrow keys make these tabs usable without a mouse.
+  button.addEventListener("keydown", function (event) {
+    let next = index;
+    if (event.key === "ArrowRight") next = (index + 1) % settingsTabButtons.length;
+    else if (event.key === "ArrowLeft") next = (index + settingsTabButtons.length - 1) % settingsTabButtons.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = settingsTabButtons.length - 1;
+    else return;
+    event.preventDefault();
+    Settings.selectTab(settingsTabButtons[next].dataset.settingsTab);
+    settingsTabButtons[next].focus();
+  });
 });
 
-// Close Settings.
+App.get("openSettingsButton").addEventListener("click", function () {
+  if (!Account.user) return;
+  Settings.renderAccount();
+  Settings.selectTab("profile");
+  if (!App.get("settingsDialog").open) App.get("settingsDialog").showModal();
+  Dashboard.refresh();
+});
+
 App.get("closeSettingsButton").addEventListener("click", function () {
   App.get("settingsDialog").close();
 });
 
-// Close Settings and start the guided tour.
 App.get("openTutorialButton").addEventListener("click", function () {
   App.get("settingsDialog").close();
   Tour.start();

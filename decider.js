@@ -3,6 +3,8 @@ const Decider = {
   weatherRange: null,
   ranked: [],
   shown: 0,
+  previewRequestNumber: 0,
+  weatherDate: null,
   requestNumber: 0
 };
 
@@ -214,6 +216,8 @@ App.get("useLocationButton").addEventListener("click", function () {
         ) throw new Error("Missing temperature");
 
         Decider.weatherRange = Decider.rangeForTemperature(feelsLike);
+        Decider.weatherDate = History.today();
+        document.dispatchEvent(new Event("closet-weather-changed"));
 
         const range = Decider.ranges[Decider.weatherRange];
 
@@ -225,6 +229,8 @@ App.get("useLocationButton").addEventListener("click", function () {
         Decider.invalidate();
       } catch (error) {
         Decider.weatherRange = null;
+        Decider.weatherDate = null;
+        document.dispatchEvent(new Event("closet-weather-changed"));
         status.textContent =
           "Weather could not be loaded. Choose warmth manually.";
         Decider.invalidate();
@@ -282,15 +288,27 @@ Decider.generate = async function (options = {}) {
     // Normally there is no required piece.
 // Style This Piece supplies one clothing ID.
 const requiredPieceId = options.pieceId || null;
-  const request = ++Decider.requestNumber;
-  const status = App.get(
+const isPreview = options.preview === true;
+// Home requests have their own counter and never alter visible suggestions.
+const previewUserId = isPreview ? Account.user?.id : null;
+  const request = isPreview
+    ? ++Decider.previewRequestNumber
+    : ++Decider.requestNumber;
+  const isCurrent = function () {
+    return isPreview
+      ? request === Decider.previewRequestNumber && Account.user?.id === previewUserId
+      : request === Decider.requestNumber;
+  };
+  const status = isPreview ? { textContent: "" } : App.get(
   requiredPieceId ? "stylePieceStatus" : "deciderStatus"
 );
 
-  const choice = App.get("deciderWarmth").value;
+  const choice = isPreview ? "any" : App.get("deciderWarmth").value;
   // Style This Piece uses available weather, or any warmth.
 // It does not inherit unrelated filters from the Decider page.
-const rangeName = requiredPieceId
+const rangeName = isPreview
+  ? options.rangeName || "any"
+  : requiredPieceId
   ? Decider.weatherRange || "any"
   : choice === "weather" ? Decider.weatherRange : choice;
 
@@ -307,11 +325,15 @@ const source = requiredPieceId
   ? Decider.pieceMode
   : "all";
 // Existing outfits can include recently worn combinations.
-const avoid = requiredPieceId
+const avoid = isPreview
+  ? true
+  : requiredPieceId
   ? Decider.pieceMode === "new"
   : App.get("avoidRepeats").checked;
 
-const days = requiredPieceId
+const days = isPreview
+  ? 7
+  : requiredPieceId
   ? 7
   : Number(App.get("repeatDays").value);
 
@@ -325,7 +347,9 @@ const days = requiredPieceId
 
  // For styling one piece, use its own styles.
 // Otherwise use the styles selected on the Decider page.
-const styles = requiredPieceId
+const styles = isPreview
+  ? []
+  : requiredPieceId
   ? options.pieceStyles || []
   : [...document.querySelectorAll(
       'input[name="deciderStyle"]:checked'
@@ -336,7 +360,7 @@ const styles = requiredPieceId
  status.textContent = "Finding outfits...";
  // Open the main suggestions screen.
 // Style This Piece keeps using its separate popup.
-if (!requiredPieceId) {
+if (!isPreview && !requiredPieceId) {
   Decider.resultsMode = "all";
 
   // Start with ALL selected every time suggestions are requested.
@@ -356,7 +380,9 @@ if (!requiredPieceId) {
   }
 }
 
-if (requiredPieceId) {
+if (isPreview) {
+  // No popup, grid, or filters are changed for Home.
+} else if (requiredPieceId) {
   App.get("stylePieceResults").replaceChildren();
 } else {
   App.get("suggestionGrid").replaceChildren();
@@ -365,11 +391,11 @@ if (requiredPieceId) {
   Decider.shown = 0;
 }
   try {
-    const data = await App.read([
+    const data = options.data || await App.read([
       "clothes", "outfits", "history", "dismissed"
     ]);
 
-    if (request !== Decider.requestNumber) return;
+    if (!isCurrent()) return;
 
     const byId = new Map(data.clothes.map(function (item) {
       return [item.id, item];
@@ -651,7 +677,7 @@ if (source === "existing") {
         });
       }
 
-      return request === Decider.requestNumber;
+      return isCurrent();
     }
 
     if (source !== "saved") {
@@ -713,12 +739,19 @@ if (source === "existing") {
       }
     }
 
-    if (request !== Decider.requestNumber) return;
+    if (!isCurrent()) return;
 
    // Sort once, without rendering anything inside the sort function.
 const rankedResults = [...candidates.values()].sort(function (a, b) {
   return b.score - a.score || a.key.localeCompare(b.key);
 });
+
+// Home uses the same scores as ALL, without changing Decider's screen.
+if (isPreview) {
+  return rankedResults.filter(function (candidate) {
+    return Boolean(candidate.saved) || !candidate.last;
+  });
+}
 
 // Style This Piece gets its own results area.
 if (requiredPieceId) {
@@ -752,7 +785,8 @@ status.textContent = rankedResults.length
 
 Decider.showMore();
   } catch (error) {
-    if (request === Decider.requestNumber) {
+    if (isPreview) throw error;
+    if (isCurrent()) {
       status.textContent = "Suggestions could not be loaded.";
     }
   }

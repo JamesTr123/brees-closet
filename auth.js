@@ -29,6 +29,9 @@ if (setupMessage) {
 
 // Hide the app while signing in or changing accounts.
 Account.lockApp = function () {
+  if (typeof Dashboard !== "undefined") Dashboard.clear();
+  // Sign Out remains available if loading the account fails.
+  App.get("signedInPanel").appendChild(App.get("signOutButton"));
   document.body.classList.add("account-setup");
   App.get("accountSetupPage").hidden = false;
 
@@ -135,6 +138,9 @@ Account.openCloset = async function (user) {
 App.get("settingsAccountControls").appendChild(
   App.get("signedInPanel")
 );
+// Keep Sign Out beside Delete Account above all Settings tabs.
+App.get("openDeleteAccountButton").before(App.get("signOutButton"));
+Settings.renderAccount();
 
     // Open Home and highlight its navigation tab.
     document.querySelector(
@@ -289,9 +295,8 @@ App.get("loginForm").addEventListener("submit", async function (event) {
 App.get("showLoginPassword").checked = false;
 App.get("loginPassword").type = "password";
 App.get("accountName").value = "";
-App.get("welcomeHeading").textContent = "Welcome back ♡";
-// Clear the previous account's name when signing out.
-App.get("closetHeading").textContent = "My Closet ♡";
+// Keep the personalized greeting after a successful sign-in.
+Profile.renderGreeting();
   }
 });
 

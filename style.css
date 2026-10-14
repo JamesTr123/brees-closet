@@ -1037,3 +1037,160 @@ label[for="outfitName"],
 .laundry-swipe-directions span:last-child {
   color: #267957;
 }
+/* HOME: a personal daily dashboard that fits a phone. */
+.home-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 10px 0 20px;
+}
+.home-top-row h2 { margin: 6px 0 0; text-align: left; font-size: 24px; }
+.eyebrow {
+  display: block;
+  color: #a52b61;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+}
+#openSettingsButton {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 10px 12px;
+  background: white;
+  color: #a52b61;
+  font-size: 13px;
+  font-weight: bold;
+}
+.home-today-card {
+  padding: 20px;
+  border: 1px solid #efbad0;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 6px 24px rgba(130, 42, 79, 0.07);
+}
+.home-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.home-card-heading h3 { margin: 0; text-align: left; color: #a52b61; }
+.home-date { color: #785363; font-size: 12px; }
+.home-today-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  background: #fff0f6;
+}
+.home-today-photos .clothing-photo {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 180px;
+  margin: 0;
+  object-fit: contain;
+  border-radius: 12px;
+  background: white;
+}
+.home-today-photos .home-outfit-selfie {
+  display: block;
+  width: 100%;
+  max-height: 430px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+#homeTodayMessage { color: #785363; font-size: 14px; line-height: 1.55; }
+.home-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.home-actions button { flex: 1; max-width: 280px; margin: 0; font-weight: bold; }
+.home-actions .primary { background: #d83b80; border-color: #d83b80; }
+.home-today-choices { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; }
+.home-today-choices button {
+  display: flex;
+  flex: 0 0 90px;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  min-height: 76px;
+  padding: 5px;
+  background: #fff5f8;
+  border: 2px solid #edc1d2;
+}
+.home-today-choices button[aria-pressed="true"] { border-color: #d83b80; background: #ffe3ef; }
+.home-today-choices img { width: 100%; min-width: 0; height: 65px; margin: 0; object-fit: contain; }
+.home-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+.home-stats > div { padding: 16px 6px; text-align: center; border-radius: 16px; background: #f9deea; }
+.home-stats strong { display: block; color: #a52b61; font-size: 27px; }
+.home-stats span { display: block; margin-top: 5px; font-size: 11px; color: #785363; }
+.home-match-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 24px;
+  color: white;
+  background: linear-gradient(125deg, #a52b61, #dc4d90);
+}
+.home-match-card .eyebrow { color: #ffdbeb; }
+.home-match-card h3 { margin: 8px 0; text-align: left; font-size: 20px; }
+.home-match-card p { margin: 0; text-align: left; font-size: 12px; line-height: 1.5; color: #ffe4ef; }
+#homeMatchScore { font-size: 28px; white-space: nowrap; }
+#homeMatchButton { grid-column: 1 / -1; background: white; color: #a52b61; border: 0; font-weight: bold; }
+
+/* SETTINGS: three sections with account actions always at the top. */
+#settingsDialog { width: min(720px, calc(100vw - 20px)); max-width: 720px; max-height: calc(100dvh - 24px); }
+.settings-shell { padding: 0 18px 22px; }
+.settings-sticky-top { position: sticky; top: 0; z-index: 2; padding: 16px 0 12px; background: #fff5f8; border-bottom: 1px solid #efbad0; }
+.settings-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.settings-top-row h2 { margin: 0; color: #a52b61; font-size: 22px; }
+.settings-account-actions { display: flex; gap: 6px; margin-left: auto; }
+.settings-top-row button { margin: 0; padding: 8px 9px; font-size: 11px; }
+.settings-top-row #signOutButton { display: inline-block; width: auto; background: white; color: #a52b61; }
+.settings-top-row #openDeleteAccountButton { margin: 0; background: #fff5f8; color: #ae2548; border: 1px solid #eaa8b8; }
+#closeSettingsButton { background: white; color: #a52b61; }
+.settings-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 14px; }
+.settings-tabs button { padding: 11px 4px; font-size: 13px; font-weight: bold; background: white; }
+.settings-tabs button[aria-selected="true"] { background: #d83b80; border-color: #d83b80; color: white; }
+.settings-tabs button:focus-visible { outline: 3px solid #a52b61; outline-offset: 2px; }
+.settings-panel { padding-top: 18px; }
+.settings-panel h3 { color: #a52b61; font-size: 18px; }
+.settings-profile-card { padding: 18px; background: white; border-radius: 18px; border: 1px solid #efbad0; }
+.settings-profile-card h3 { margin: 0 0 8px; }
+#settingsProfileEmail { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+#profileSettingsActions .primary { margin: 14px auto 0; font-size: 13px; }
+.settings-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.settings-stats > div { min-width: 0; padding: 13px; border-radius: 14px; background: #f9deea; text-align: center; }
+.settings-stats strong { display: block; font-size: 20px; color: #a52b61; overflow-wrap: anywhere; }
+.settings-stats span { display: block; margin-top: 5px; font-size: 11px; color: #785363; }
+#settingsClosetBreakdowns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.settings-breakdown { min-width: 0; padding: 14px; background: white; border: 1px solid #efbad0; border-radius: 16px; }
+.settings-breakdown h4 { margin: 0 0 12px; color: #a52b61; font-size: 13px; }
+.settings-breakdown dl { margin: 0; font-size: 12px; }
+.settings-breakdown dl > div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid #fff0f6; }
+.settings-breakdown dt { overflow-wrap: anywhere; }
+.settings-breakdown dd { margin: 0; font-weight: bold; color: #a52b61; }
+.settings-faq details { margin: 8px 0; padding: 14px; background: white; border: 1px solid #efbad0; border-radius: 14px; }
+.settings-faq summary { cursor: pointer; color: #a52b61; font-size: 13px; font-weight: bold; line-height: 1.5; }
+.settings-faq p { margin: 12px 0 0; text-align: left; font-size: 13px; line-height: 1.65; }
+.settings-storage-card { padding: 18px; margin-bottom: 14px; background: white; border: 1px solid #efbad0; border-radius: 18px; }
+.settings-storage-card h4 { margin: 0; color: #a52b61; text-align: center; }
+.settings-storage-card p { font-size: 13px; line-height: 1.6; }
+.settings-storage-card .primary { margin: 14px auto; }
+
+@media (max-width: 420px) {
+  .home-top-row h2 { font-size: 21px; }
+  .home-today-card { padding: 15px; }
+  .home-match-card { padding: 18px; }
+  .home-match-card h3 { font-size: 17px; }
+  #homeMatchScore { font-size: 24px; }
+  .settings-shell { padding-left: 12px; padding-right: 12px; }
+  .settings-top-row { gap: 6px; }
+  .settings-top-row h2 { font-size: 20px; }
+  .settings-top-row button { padding: 8px 6px; font-size: 10px; }
+  #settingsClosetBreakdowns { grid-template-columns: 1fr; }
+}
