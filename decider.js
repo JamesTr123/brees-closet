@@ -694,47 +694,42 @@ if (source === "existing") {
 
     if (request !== Decider.requestNumber) return;
 
-    Decider.ranked = [...candidates.values()].sort(function (a, b) {
-        // Style This Piece displays at most three results.
-// Do not change the regular Decider's ranked list.
+   // Sort once, without rendering anything inside the sort function.
+const rankedResults = [...candidates.values()].sort(function (a, b) {
+  return b.score - a.score || a.key.localeCompare(b.key);
+});
+
+// Style This Piece gets its own results area.
 if (requiredPieceId) {
-  const bestThree = [...candidates.values()].sort(function (a, b) {
-    return b.score - a.score || a.key.localeCompare(b.key);
-  }).slice(0, 3);
+  const destination = App.get("stylePieceResults");
+  destination.replaceChildren();
 
-  status.textContent = bestThree.length
-    ? "Your top " + bestThree.length + " outfit(s). " +
-      (Decider.weatherRange
-        ? "Weather considered."
-        : "Any warmth; load weather in Outfit Decider to narrow it.") +
-      " Recently worn combinations excluded."
-    : "No matches using this piece. Check laundry, clothing types, " +
-      "and whether suitable combinations were worn recently.";
+  const visible = Decider.pieceMode === "new"
+    ? rankedResults.slice(0, 3)
+    : rankedResults;
 
-  bestThree.forEach(function (candidate, index) {
-    Decider.renderCard(
-      candidate,
-      index + 1,
-      App.get("stylePieceResults")
-    );
+  visible.forEach(function (candidate, index) {
+    Decider.renderCard(candidate, index + 1, destination);
   });
+
+  status.textContent = visible.length
+    ? visible.length + " matching outfit(s), strongest first."
+    : "No matching outfits for this piece.";
 
   return;
 }
-      return b.score - a.score || a.key.localeCompare(b.key);
-    });
 
-    const untyped = clean.filter(function (item) {
-      return !item.clothingType;
-    }).length;
+// Main Outfit Decider gets a fresh list and starts at the first result.
+Decider.ranked = rankedResults;
+Decider.shown = 0;
 
-    status.textContent = Decider.ranked.length
-      ? Decider.ranked.length + " matching outfit(s), strongest first." +
-        (untyped ? " Edit untyped clothing to include it in new combinations." : "")
-      : "No matches. Try another warmth range or style, " +
-        "or adjust the repeat filter.";
+App.get("suggestionGrid").replaceChildren();
 
-    Decider.showMore();
+status.textContent = rankedResults.length
+  ? rankedResults.length + " matching outfit(s), strongest first."
+  : "No matches. Try another warmth range or adjust your filters.";
+
+Decider.showMore();
   } catch (error) {
     if (request === Decider.requestNumber) {
       status.textContent = "Suggestions could not be loaded.";
@@ -750,7 +745,12 @@ Decider.showMore = function () {
   );
 
   next.forEach(function (candidate, index) {
-    Decider.renderCard(candidate, Decider.shown + index + 1);
+    // Explicitly display normal suggestions in the main Decider grid.
+Decider.renderCard(
+  candidate,
+  Decider.shown + index + 1,
+  App.get("suggestionGrid")
+);
   });
 
   Decider.shown += next.length;
@@ -800,8 +800,10 @@ Decider.renderCard = function (
   destination = App.get("suggestionGrid")
 ) {
     // Never show saved or previously worn combinations in this popup.
-const stylingPiece = App.get("stylePieceDialog").open &&
-  Decider.activePieceId;
+// Apply popup-only rules only when rendering into the popup.
+const stylingPiece =
+  destination === App.get("stylePieceResults") &&
+  Boolean(Decider.activePieceId);
 
 if (stylingPiece) {
   // Both views must contain the exact selected piece.

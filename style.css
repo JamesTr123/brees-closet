@@ -874,3 +874,13 @@ label[for="outfitName"],
 #outfitName {
   display: none !important;
 }
+/* Keep the lighter button distinct from the dark pink Log button. */
+#createAndLogButton {
+  display: block;
+  width: fit-content;
+  margin: 12px auto;
+  background: #fff0f6;
+  color: #a94370;
+  border: 2px solid #a94370;
+  font-weight: bold;
+}

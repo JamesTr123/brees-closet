@@ -612,3 +612,10 @@ document.addEventListener("closet-data-changed", function () {
     History.loadPicker();
   }
 });
+// Move the existing button above the filters.
+// This moves it; it does not create a duplicate.
+const loggingFilters = App.get("logOutfitPanel").querySelector(
+  ".filter-grid"
+);
+
+loggingFilters.before(App.get("createAndLogButton"));
