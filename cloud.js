@@ -92,7 +92,7 @@ Cloud.resizePhoto = function (source) {
       try {
         const scale = Math.min(
           1,
-          1280 / Math.max(image.naturalWidth, image.naturalHeight)
+          720 / Math.max(image.naturalWidth, image.naturalHeight)
         );
 
         const canvas = document.createElement("canvas");
