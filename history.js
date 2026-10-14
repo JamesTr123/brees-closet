@@ -133,6 +133,13 @@ App.get("openLogButton").addEventListener("click", function () {
   App.get("wearDate").value = History.today();
   App.get("wearDate").max = History.today();
   App.get("logOutfitPanel").hidden = false;
+  // Bring the logging form into view immediately.
+App.get("logStatus").textContent = "Loading your saved outfits...";
+
+App.get("logOutfitPanel").scrollIntoView({
+  behavior: "smooth",
+  block: "start"
+});
 
   History.loadPicker();
 });
