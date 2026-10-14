@@ -422,12 +422,7 @@
         </label>
       </fieldset>
 
-      <label for="suggestionSource">Show suggestions from</label>
-      <select id="suggestionSource">
-        <option value="all">All suggestions</option>
-        <option value="saved">My saved outfits</option>
-        <option value="new">New combinations only</option>
-      </select>
+      
 
       <label class="check-label">
         <input id="avoidRepeats" type="checkbox" checked>
@@ -446,11 +441,56 @@
       </button>
     </div>
 
-    <p id="deciderStatus" role="status"></p>
-    <div id="suggestionGrid" class="outfit-grid"></div>
+    <!-- Nearly full-screen page for outfit suggestions. -->
+<dialog id="suggestionsDialog"
+        aria-labelledby="suggestionsHeading">
 
-    <button id="moreSuggestionsButton" class="primary"
-            type="button" hidden>Show More</button>
+  <!-- Keep Back and the switches visible while scrolling. -->
+  <div class="suggestions-header">
+
+    <button id="backFromSuggestionsButton" type="button">
+      ← Back
+    </button>
+
+    <h2 id="suggestionsHeading">Your Outfit Suggestions</h2>
+
+    <!-- Each button shows a different part of the ranked results. -->
+    <div class="suggestions-switches"
+         role="group"
+         aria-label="Which outfits to show">
+
+      <button type="button"
+              data-suggestion-mode="all"
+              aria-pressed="true">
+        ALL
+      </button>
+
+      <button type="button"
+              data-suggestion-mode="saved"
+              aria-pressed="false">
+        My Saved Outfits
+      </button>
+
+      <button type="button"
+              data-suggestion-mode="new"
+              aria-pressed="false">
+        New Combinations
+      </button>
+
+    </div>
+  </div>
+
+  <p id="deciderStatus" role="status"></p>
+
+  <!-- Outfit cards appear here. -->
+  <div id="suggestionGrid" class="outfit-grid"></div>
+
+  <!-- Keep this hidden element for compatibility with existing code. -->
+  <button id="moreSuggestionsButton" type="button" hidden>
+    Show More
+  </button>
+
+</dialog>
 
     <p class="small-note">
       Weather provided by

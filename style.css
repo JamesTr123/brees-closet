@@ -884,3 +884,99 @@ label[for="outfitName"],
   border: 2px solid #a94370;
   font-weight: bold;
 }
+/* Make the suggestions popup almost fill the screen. */
+#suggestionsDialog {
+  width: min(960px, calc(100vw - 16px));
+
+  /* The second height adjusts to mobile browser controls. */
+  height: 94vh;
+  height: 94dvh;
+
+  max-height: 96vh;
+  max-height: 96dvh;
+
+  margin: auto;
+  padding: 0 16px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+
+  border: 2px solid #db4485;
+  border-radius: 20px;
+  background: #fff5f8;
+  color: #49333d;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Darken the filter page behind the popup. */
+#suggestionsDialog::backdrop {
+  background: rgba(65, 20, 40, 0.45);
+}
+
+/* Keep the heading and switches at the top while scrolling. */
+#suggestionsDialog .suggestions-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  padding: 14px 0 12px;
+  background: #fff5f8;
+  border-bottom: 2px solid #f3b3cf;
+}
+
+#suggestionsHeading {
+  margin: 12px 0;
+  color: #a52b61;
+  font-size: 21px;
+}
+
+/* Back stays on the left. */
+#backFromSuggestionsButton {
+  margin: 0;
+  background: white;
+  color: #a52b61;
+  font-weight: bold;
+}
+
+/* Three switches share the width of the popup. */
+#suggestionsDialog .suggestions-switches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+#suggestionsDialog .suggestions-switches button {
+  min-width: 0;
+  padding: 10px 5px;
+  border-color: #db4485;
+  background: white;
+  color: #a52b61;
+
+  font-size: 13px;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+/* Hot pink shows the selected switch. */
+#suggestionsDialog .suggestions-switches button[aria-pressed="true"] {
+  background: #db4485;
+  color: white;
+}
+
+/* Cards fit on both a phone and a computer. */
+#suggestionsDialog #suggestionGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+#suggestionsDialog .saved-outfit-card {
+  min-width: 0;
+}
+
+/* These tabs replace the old Show More feature. */
+#suggestionsDialog #moreSuggestionsButton {
+  display: none !important;
+}

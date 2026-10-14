@@ -265,7 +265,6 @@ App.get("avoidRepeats").addEventListener("change", function () {
 
 [
   "deciderWarmth",
-  "suggestionSource",
   "avoidRepeats",
   "repeatDays"
 ].forEach(function (id) {
@@ -302,10 +301,11 @@ const rangeName = requiredPieceId
   }
 
   const range = Decider.ranges[rangeName];
-  const source = requiredPieceId
+  // Generate both kinds for the main suggestions popup.
+// Style This Piece still uses its own selected mode.
+const source = requiredPieceId
   ? Decider.pieceMode
-  : App.get("suggestionSource").value;
-
+  : "all";
 // Existing outfits can include recently worn combinations.
 const avoid = requiredPieceId
   ? Decider.pieceMode === "new"
@@ -334,6 +334,27 @@ const styles = requiredPieceId
     });
 
  status.textContent = "Finding outfits...";
+ // Open the main suggestions screen.
+// Style This Piece keeps using its separate popup.
+if (!requiredPieceId) {
+  Decider.resultsMode = "all";
+
+  // Start with ALL selected every time suggestions are requested.
+  document.querySelectorAll("[data-suggestion-mode]").forEach(
+    function (button) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.suggestionMode === "all")
+      );
+    }
+  );
+
+  const dialog = App.get("suggestionsDialog");
+
+  if (!dialog.open) {
+    dialog.showModal();
+  }
+}
 
 if (requiredPieceId) {
   App.get("stylePieceResults").replaceChildren();
@@ -737,26 +758,64 @@ Decider.showMore();
   }
 };
 
-// Show the next twelve ranked suggestions.
+// Display only the strongest outfits for the selected tab.
+// Keep the old function name because existing code calls it.
 Decider.showMore = function () {
-  const next = Decider.ranked.slice(
-    Decider.shown,
-    Decider.shown + 12
-  );
+  const mode = Decider.resultsMode || "all";
 
-  next.forEach(function (candidate, index) {
-    // Explicitly display normal suggestions in the main Decider grid.
-Decider.renderCard(
-  candidate,
-  Decider.shown + index + 1,
-  App.get("suggestionGrid")
-);
+  // Maximum number of cards shown in each tab.
+  const limits = {
+    all: 8,
+    saved: 5,
+    new: 3
+  };
+
+  // The list is already sorted from strongest to weakest.
+  // Filtering it keeps that same order.
+  const matching = Decider.ranked.filter(function (candidate) {
+    if (mode === "saved") {
+      return Boolean(candidate.saved);
+    }
+
+    if (mode === "new") {
+      // New combinations have not been saved or worn before.
+      return !candidate.saved && !candidate.last;
+    }
+
+    // ALL combines saved outfits and new combinations.
+    return Boolean(candidate.saved) || !candidate.last;
   });
 
-  Decider.shown += next.length;
+  // Take only the requested number, or fewer if fewer qualify.
+  const visible = matching.slice(0, limits[mode]);
 
-  App.get("moreSuggestionsButton").hidden =
-    Decider.shown >= Decider.ranked.length;
+  const grid = App.get("suggestionGrid");
+  grid.replaceChildren();
+
+  visible.forEach(function (candidate, index) {
+    Decider.renderCard(candidate, index + 1, grid);
+  });
+
+  // Update which switch is highlighted.
+  document.querySelectorAll("[data-suggestion-mode]").forEach(
+    function (button) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.suggestionMode === mode)
+      );
+    }
+  );
+
+  Decider.shown = visible.length;
+
+  // There is no Show More button with these fixed limits.
+  App.get("moreSuggestionsButton").hidden = true;
+
+  App.get("deciderStatus").textContent = visible.length
+    ? "Showing " + visible.length + " of " +
+      matching.length + " matching outfits, strongest first."
+    : "No matching outfits in this tab. Try another tab " +
+      "or use Back to adjust your filters.";
 };
 
 // Build the side meter.
@@ -1295,3 +1354,49 @@ Decider.showExistingForPiece = async function (itemId) {
     }
   }
 };
+// Place the popup outside the individual app pages.
+document.body.appendChild(App.get("suggestionsDialog"));
+
+// ALL is the default results tab.
+Decider.resultsMode = "all";
+
+// Back closes the popup without changing any filters.
+App.get("backFromSuggestionsButton").addEventListener(
+  "click",
+  function () {
+    App.get("suggestionsDialog").close();
+
+    // Return keyboard focus to the button that opened it.
+    App.get("suggestOutfitsButton").focus();
+  }
+);
+
+// Switch between the already-ranked outfit lists.
+document.querySelectorAll("[data-suggestion-mode]").forEach(
+  function (button) {
+    button.addEventListener("click", function () {
+      Decider.resultsMode = this.dataset.suggestionMode;
+
+      document.querySelectorAll("[data-suggestion-mode]").forEach(
+        function (switchButton) {
+          switchButton.setAttribute(
+            "aria-pressed",
+            String(
+              switchButton.dataset.suggestionMode ===
+              Decider.resultsMode
+            )
+          );
+        }
+      );
+
+      // If generation is still running, it will use this selection
+      // when it finishes. Otherwise, display the selected list now.
+      if (Decider.ranked.length > 0) {
+        Decider.showMore();
+      }
+
+      // Start each tab at the top of the popup.
+      App.get("suggestionsDialog").scrollTop = 0;
+    });
+  }
+);
