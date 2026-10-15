@@ -1,3 +1,43 @@
+/* Shared theme colors. Pink remains the default. */
+:root {
+  --theme-fff5f8: #fff5f8;
+  --theme-49333d: #49333d;
+  --theme-a94370: #a94370;
+  --theme-f3c6d8: #f3c6d8;
+  --theme-c696aa: #c696aa;
+  --theme-ec428c: #ec428c;
+  --theme-c5236b: #c5236b;
+  --theme-fff0f6: #fff0f6;
+  --theme-a12b60: #a12b60;
+  --theme-bd3773: #bd3773;
+  --theme-b62f69: #b62f69;
+  --theme-d94c8a: #d94c8a;
+  --theme-a4285c: #a4285c;
+  --theme-c63d7b: #c63d7b;
+  --theme-f8d1e1: #f8d1e1;
+  --theme-db4485: #db4485;
+  --theme-f3b3cf: #f3b3cf;
+  --theme-a52b61: #a52b61;
+  --theme-d63b80: #d63b80;
+  --theme-efbad0: #efbad0;
+  --theme-785363: #785363;
+  --theme-d83b80: #d83b80;
+  --theme-edc1d2: #edc1d2;
+  --theme-ffe3ef: #ffe3ef;
+  --theme-f9deea: #f9deea;
+  --theme-dc4d90: #dc4d90;
+  --theme-ffdbeb: #ffdbeb;
+  --theme-ffe4ef: #ffe4ef;
+  --theme-ae2548: #ae2548;
+  --theme-rgb-73-33-53-0p55: rgba(73, 33, 53, 0.55);
+  --theme-rgb-169-67-112-0p2: rgba(169, 67, 112, 0.2);
+  --theme-rgb-73-33-53-0p25: rgba(73, 33, 53, 0.25);
+  --theme-rgb-65-20-40-0p45: rgba(65, 20, 40, 0.45);
+  --theme-rgb-130-42-79-0p07: rgba(130, 42, 79, 0.07);
+  --theme-rgb-73-33-53-0p18: rgba(73, 33, 53, 0.18);
+  --theme-rgb-73-33-53-0p4: rgba(73, 33, 53, 0.4);
+}
+
 /* Include padding and borders in element sizes. */
 * {
   box-sizing: border-box;
@@ -12,8 +52,8 @@ body {
   margin: 0;
   padding: 24px;
   padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-  background: #fff5f8;
-  color: #49333d;
+  background: var(--theme-fff5f8);
+  color: var(--theme-49333d);
   font-family: Arial, sans-serif;
 }
 
@@ -35,10 +75,10 @@ p {
 button,
 .file-button {
   padding: 12px 18px;
-  border: 1px solid #a94370;
+  border: 1px solid var(--theme-a94370);
   border-radius: 10px;
-  background: #fff5f8;
-  color: #a94370;
+  background: var(--theme-fff5f8);
+  color: var(--theme-a94370);
   font: inherit;
   cursor: pointer;
 }
@@ -48,14 +88,14 @@ button,
   width: fit-content;
   max-width: 100%;
   margin: 20px auto;
-  background: #a94370;
+  background: var(--theme-a94370);
   color: white;
   text-align: center;
 }
 
 /* Dark pink shows a selected favorite or filter. */
 button[aria-pressed="true"] {
-  background: #a94370;
+  background: var(--theme-a94370);
   color: white;
 }
 
@@ -74,15 +114,15 @@ select {
   min-width: 0;
   margin: 8px 0 16px;
   padding: 10px;
-  border: 1px solid #a94370;
+  border: 1px solid var(--theme-a94370);
   border-radius: 8px;
-  background: #fff5f8;
-  color: #49333d;
+  background: var(--theme-fff5f8);
+  color: var(--theme-49333d);
   font: inherit;
 }
 
 input[type="checkbox"] {
-  accent-color: #a94370;
+  accent-color: var(--theme-a94370);
 }
 
 .check-label {
@@ -94,7 +134,7 @@ fieldset {
   min-width: 0;
   margin: 16px 0;
   padding: 14px;
-  border: 1px solid #a94370;
+  border: 1px solid var(--theme-a94370);
   border-radius: 12px;
 }
 
@@ -102,7 +142,7 @@ fieldset {
 .panel {
   margin: 24px auto;
   padding: 24px;
-  background: #f3c6d8;
+  background: var(--theme-f3c6d8);
   border-radius: 20px;
 }
 
@@ -133,7 +173,7 @@ fieldset {
   min-width: 0;
   padding: 14px;
   border-radius: 16px;
-  background: #f3c6d8;
+  background: var(--theme-f3c6d8);
   text-align: center;
   overflow-wrap: anywhere;
 }
@@ -165,7 +205,7 @@ fieldset {
 .outfit-choice {
   display: block;
   border: 2px solid transparent;
-  background: #fff5f8;
+  background: var(--theme-fff5f8);
   cursor: pointer;
 }
 
@@ -175,7 +215,7 @@ fieldset {
 }
 
 .outfit-choice:has(input:checked) {
-  border-color: #a94370;
+  border-color: var(--theme-a94370);
 }
 
 .filter-grid {
@@ -210,7 +250,7 @@ fieldset {
 }
 
 a {
-  color: #a94370;
+  color: var(--theme-a94370);
 }
 
 /* A suggestion has its content beside a vertical match meter. */
@@ -234,8 +274,8 @@ a {
   height: 160px;
   overflow: hidden;
   border-radius: 12px;
-  background: #fff5f8;
-  border: 1px solid #c696aa;
+  background: var(--theme-fff5f8);
+  border: 1px solid var(--theme-c696aa);
 }
 
 /* JavaScript controls the fill's height and color. */
@@ -257,8 +297,8 @@ a {
   gap: 4px;
   padding: 12px 8px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid #a94370;
-  background: #f3c6d8;
+  border-top: 1px solid var(--theme-a94370);
+  background: var(--theme-f3c6d8);
   z-index: 10;
 }
 
@@ -268,13 +308,13 @@ a {
   padding: 12px 4px;
   border: none;
   background: transparent;
-  color: #49333d;
+  color: var(--theme-49333d);
   font-size: 12px;
   overflow-wrap: anywhere;
 }
 
 .bottom-tabs button.active {
-  background: #a94370;
+  background: var(--theme-a94370);
   color: white;
 }
 
@@ -282,7 +322,7 @@ a {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 3px solid #49333d;
+  outline: 3px solid var(--theme-49333d);
   outline-offset: 3px;
 }
 /* Open the builder above the page, sized for phones and computers. */
@@ -291,16 +331,16 @@ select:focus-visible {
   max-width: 850px;
   max-height: calc(100dvh - 32px);
   padding: 0;
-  border: 3px solid #ec428c;
+  border: 3px solid var(--theme-ec428c);
   border-radius: 22px;
   background: white;
-  color: #49333d;
+  color: var(--theme-49333d);
   overflow-y: auto;
 }
 
 /* Dim the page behind the popup. */
 #outfitDialog::backdrop {
-  background: rgba(73, 33, 53, 0.55);
+  background: var(--theme-rgb-73-33-53-0p55);
 }
 
 /* Use a white background inside the builder. */
@@ -313,24 +353,24 @@ select:focus-visible {
 
 /* Give popup headings a hot pink color. */
 #outfitDialog h3 {
-  color: #c5236b;
+  color: var(--theme-c5236b);
 }
 
 /* Hot pink primary buttons inside the popup. */
 #outfitDialog .primary {
-  background: #c5236b;
-  border-color: #c5236b;
+  background: var(--theme-c5236b);
+  border-color: var(--theme-c5236b);
   color: white;
 }
 
 /* Soft pink selection cards on the white background. */
 #outfitDialog .outfit-choice {
-  background: #fff0f6;
+  background: var(--theme-fff0f6);
 }
 
 /* Highlight the selected clothing pieces. */
 #outfitDialog .outfit-choice:has(input:checked) {
-  border-color: #ec428c;
+  border-color: var(--theme-ec428c);
 }
 
 /* Display her outfit photo without cropping it. */
@@ -346,7 +386,7 @@ select:focus-visible {
 
 /* Bold, dark pink navigation wording. */
 .bottom-tabs button {
-  color: #a12b60;
+  color: var(--theme-a12b60);
   font-weight: 700;
 }
 
@@ -383,14 +423,14 @@ select:focus-visible {
   max-height: calc(100dvh - 32px);
   padding: 0;
   overflow-y: auto;
-  border: 3px solid #ec428c;
+  border: 3px solid var(--theme-ec428c);
   border-radius: 22px;
   background: white;
-  color: #49333d;
+  color: var(--theme-49333d);
 }
 
 #afterOutfitPhotoDialog::backdrop {
-  background: rgba(73, 33, 53, 0.55);
+  background: var(--theme-rgb-73-33-53-0p55);
 }
 
 .photo-prompt {
@@ -399,12 +439,12 @@ select:focus-visible {
 }
 
 .photo-prompt h3 {
-  color: #c5236b;
+  color: var(--theme-c5236b);
 }
 
 .photo-prompt .primary {
-  background: #c5236b;
-  border-color: #c5236b;
+  background: var(--theme-c5236b);
+  border-color: var(--theme-c5236b);
   color: white;
 }
 
@@ -430,7 +470,7 @@ select:focus-visible {
   padding: 0;
   border-radius: 50%;
   background: white;
-  color: #a94370;
+  color: var(--theme-a94370);
   font-size: 24px;
   line-height: 1;
 }
@@ -442,14 +482,14 @@ select:focus-visible {
   max-height: calc(100dvh - 32px);
   padding: 0;
   overflow-y: auto;
-  border: 2px solid #a94370;
+  border: 2px solid var(--theme-a94370);
   border-radius: 20px;
-  background: #fff5f8;
-  color: #49333d;
+  background: var(--theme-fff5f8);
+  color: var(--theme-49333d);
 }
 
 #clothingInfoDialog::backdrop {
-  background: rgba(73, 33, 53, 0.55);
+  background: var(--theme-rgb-73-33-53-0p55);
 }
 
 /* Keep the full details easy to scan. */
@@ -485,7 +525,7 @@ select:focus-visible {
   height: 26px;
   padding: 0;
   border: none;
-  background: #a94370;
+  background: var(--theme-a94370);
   color: white;
   font-family: Georgia, serif;
   font-size: 18px;
@@ -507,14 +547,14 @@ select:focus-visible {
   max-height: calc(100dvh - 32px);
   padding: 0;
   overflow-y: auto;
-  border: 3px solid #ec428c;
+  border: 3px solid var(--theme-ec428c);
   border-radius: 22px;
   background: white;
-  color: #49333d;
+  color: var(--theme-49333d);
 }
 
 #stylePieceDialog::backdrop {
-  background: rgba(73, 33, 53, 0.55);
+  background: var(--theme-rgb-73-33-53-0p55);
 }
 
 /* Keep the new clothing-card button compact. */
@@ -531,18 +571,18 @@ select:focus-visible {
   width: 100%;
   margin: 10px 0 6px;
   padding: 10px 8px;
-  border: 1px solid #bd3773;
+  border: 1px solid var(--theme-bd3773);
   border-radius: 14px;
-  background: linear-gradient(135deg, #b62f69, #d94c8a);
+  background: linear-gradient(135deg, var(--theme-b62f69), var(--theme-d94c8a));
   color: white;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2px;
-  box-shadow: 0 3px 8px rgba(169, 67, 112, 0.2);
+  box-shadow: 0 3px 8px var(--theme-rgb-169-67-112-0p2);
 }
 
 .clothing-card .style-piece-button:hover {
-  background: linear-gradient(135deg, #a4285c, #c63d7b);
+  background: linear-gradient(135deg, var(--theme-a4285c), var(--theme-c63d7b));
 }
 
 .clothing-card .style-piece-button:active {
@@ -655,9 +695,9 @@ select:focus-visible {
 /* Allow vertical scrolling while detecting horizontal swipes. */
 #laundrySwipeCard {
   padding: 16px;
-  border: 2px solid #a94370;
+  border: 2px solid var(--theme-a94370);
   border-radius: 20px;
-  background: #f3c6d8;
+  background: var(--theme-f3c6d8);
   touch-action: pan-y;
   user-select: none;
 }
@@ -698,22 +738,22 @@ body.account-setup > .bottom-tabs {
   max-height: calc(100dvh - 32px);
   padding: 0;
   overflow-y: auto;
-  border: 2px solid #a94370;
+  border: 2px solid var(--theme-a94370);
   border-radius: 20px;
-  background: #fff5f8;
-  color: #49333d;
+  background: var(--theme-fff5f8);
+  color: var(--theme-49333d);
 }
 
 #settingsDialog::backdrop,
 #deleteAccountDialog::backdrop {
-  background: rgba(73, 33, 53, 0.55);
+  background: var(--theme-rgb-73-33-53-0p55);
 }
 
 #tutorialPanel {
   padding: 14px;
   margin: 16px 0;
   border-radius: 14px;
-  background: #f3c6d8;
+  background: var(--theme-f3c6d8);
 }
 
 /* Make irreversible deletion visibly different. */
@@ -738,17 +778,17 @@ body.account-setup > .bottom-tabs {
   margin: 0 auto;
   padding: 16px;
   overflow-y: auto;
-  border: 2px solid #c5236b;
+  border: 2px solid var(--theme-c5236b);
   border-radius: 20px;
   background: white;
-  color: #49333d;
-  box-shadow: 0 6px 28px rgba(73, 33, 53, 0.25);
+  color: var(--theme-49333d);
+  box-shadow: 0 6px 28px var(--theme-rgb-73-33-53-0p25);
   z-index: 20;
 }
 
 #guidedTour h3 {
   margin: 8px 0;
-  color: #c5236b;
+  color: var(--theme-c5236b);
   font-size: 18px;
 }
 
@@ -779,7 +819,7 @@ body.account-setup > .bottom-tabs {
 
 /* Emphasize the tab currently being explained. */
 .bottom-tabs button.tour-highlight {
-  outline: 2px solid #c5236b;
+  outline: 2px solid var(--theme-c5236b);
   outline-offset: 2px;
 }
 
@@ -794,14 +834,14 @@ body.tour-active {
   max-height: calc(100dvh - 32px);
   padding: 0;
   overflow-y: auto;
-  border: 2px solid #a94370;
+  border: 2px solid var(--theme-a94370);
   border-radius: 20px;
-  background: #fff5f8;
-  color: #49333d;
+  background: var(--theme-fff5f8);
+  color: var(--theme-49333d);
 }
 
 #profileNameDialog::backdrop {
-  background: rgba(73, 33, 53, 0.55);
+  background: var(--theme-rgb-73-33-53-0p55);
 }
 /* Logging always opens in its own phone-friendly popup. */
 #logOutfitDialog {
@@ -810,14 +850,14 @@ body.tour-active {
   max-height: calc(100dvh - 32px);
   padding: 0;
   overflow-y: auto;
-  border: 3px solid #ec428c;
+  border: 3px solid var(--theme-ec428c);
   border-radius: 22px;
   background: white;
-  color: #49333d;
+  color: var(--theme-49333d);
 }
 
 #logOutfitDialog::backdrop {
-  background: rgba(73, 33, 53, 0.55);
+  background: var(--theme-rgb-73-33-53-0p55);
 }
 
 #logOutfitPanel {
@@ -836,14 +876,14 @@ body.tour-active {
   padding: 10px;
   border: 2px solid transparent;
   border-radius: 14px;
-  background: #fff0f6;
-  color: #49333d;
+  background: var(--theme-fff0f6);
+  color: var(--theme-49333d);
 }
 
 .log-outfit-choice[aria-pressed="true"] {
-  border-color: #c5236b;
-  background: #f8d1e1;
-  color: #49333d;
+  border-color: var(--theme-c5236b);
+  background: var(--theme-f8d1e1);
+  color: var(--theme-49333d);
 }
 
 .log-outfit-choice .clothing-photo {
@@ -879,9 +919,9 @@ label[for="outfitName"],
   display: block;
   width: fit-content;
   margin: 12px auto;
-  background: #fff0f6;
-  color: #a94370;
-  border: 2px solid #a94370;
+  background: var(--theme-fff0f6);
+  color: var(--theme-a94370);
+  border: 2px solid var(--theme-a94370);
   font-weight: bold;
 }
 /* Make the suggestions popup almost fill the screen. */
@@ -899,10 +939,10 @@ label[for="outfitName"],
   padding: 0 16px;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 
-  border: 2px solid #db4485;
+  border: 2px solid var(--theme-db4485);
   border-radius: 20px;
-  background: #fff5f8;
-  color: #49333d;
+  background: var(--theme-fff5f8);
+  color: var(--theme-49333d);
 
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -910,7 +950,7 @@ label[for="outfitName"],
 
 /* Darken the filter page behind the popup. */
 #suggestionsDialog::backdrop {
-  background: rgba(65, 20, 40, 0.45);
+  background: var(--theme-rgb-65-20-40-0p45);
 }
 
 /* Keep the heading and switches at the top while scrolling. */
@@ -920,13 +960,13 @@ label[for="outfitName"],
   z-index: 2;
 
   padding: 14px 0 12px;
-  background: #fff5f8;
-  border-bottom: 2px solid #f3b3cf;
+  background: var(--theme-fff5f8);
+  border-bottom: 2px solid var(--theme-f3b3cf);
 }
 
 #suggestionsHeading {
   margin: 12px 0;
-  color: #a52b61;
+  color: var(--theme-a52b61);
   font-size: 21px;
 }
 
@@ -934,7 +974,7 @@ label[for="outfitName"],
 #backFromSuggestionsButton {
   margin: 0;
   background: white;
-  color: #a52b61;
+  color: var(--theme-a52b61);
   font-weight: bold;
 }
 
@@ -948,9 +988,9 @@ label[for="outfitName"],
 #suggestionsDialog .suggestions-switches button {
   min-width: 0;
   padding: 10px 5px;
-  border-color: #db4485;
+  border-color: var(--theme-db4485);
   background: white;
-  color: #a52b61;
+  color: var(--theme-a52b61);
 
   font-size: 13px;
   font-weight: bold;
@@ -959,7 +999,7 @@ label[for="outfitName"],
 
 /* Hot pink shows the selected switch. */
 #suggestionsDialog .suggestions-switches button[aria-pressed="true"] {
-  background: #db4485;
+  background: var(--theme-db4485);
   color: white;
 }
 
@@ -1004,7 +1044,7 @@ label[for="outfitName"],
 
 /* Pink indicates a swipe toward laundry. */
 #laundrySwipeCard[data-direction="left"] {
-  border-color: #d63b80;
+  border-color: var(--theme-d63b80);
 }
 
 /* Green indicates a swipe toward clean. */
@@ -1014,7 +1054,7 @@ label[for="outfitName"],
 
 /* Visible focus for keyboard users. */
 #laundrySwipeCard:focus-visible {
-  outline: 3px solid #db4485;
+  outline: 3px solid var(--theme-db4485);
   outline-offset: 4px;
 }
 
@@ -1031,7 +1071,7 @@ label[for="outfitName"],
 }
 
 .laundry-swipe-directions span:first-child {
-  color: #a52b61;
+  color: var(--theme-a52b61);
 }
 
 .laundry-swipe-directions span:last-child {
@@ -1048,7 +1088,7 @@ label[for="outfitName"],
 .home-top-row h2 { margin: 6px 0 0; text-align: left; font-size: 24px; }
 .eyebrow {
   display: block;
-  color: #a52b61;
+  color: var(--theme-a52b61);
   font-size: 11px;
   font-weight: bold;
   letter-spacing: 1.2px;
@@ -1058,16 +1098,16 @@ label[for="outfitName"],
   margin: 0;
   padding: 10px 12px;
   background: white;
-  color: #a52b61;
+  color: var(--theme-a52b61);
   font-size: 13px;
   font-weight: bold;
 }
 .home-today-card {
   padding: 20px;
-  border: 1px solid #efbad0;
+  border: 1px solid var(--theme-efbad0);
   border-radius: 24px;
   background: white;
-  box-shadow: 0 6px 24px rgba(130, 42, 79, 0.07);
+  box-shadow: 0 6px 24px var(--theme-rgb-130-42-79-0p07);
 }
 .home-card-heading {
   display: flex;
@@ -1077,15 +1117,15 @@ label[for="outfitName"],
   gap: 8px;
   margin-bottom: 16px;
 }
-.home-card-heading h3 { margin: 0; text-align: left; color: #a52b61; }
-.home-date { color: #785363; font-size: 12px; }
+.home-card-heading h3 { margin: 0; text-align: left; color: var(--theme-a52b61); }
+.home-date { color: var(--theme-785363); font-size: 12px; }
 .home-today-photos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
   padding: 12px;
   border-radius: 18px;
-  background: #fff0f6;
+  background: var(--theme-fff0f6);
 }
 .home-today-photos .clothing-photo {
   display: block;
@@ -1104,10 +1144,10 @@ label[for="outfitName"],
   border-radius: 12px;
   object-fit: contain;
 }
-#homeTodayMessage { color: #785363; font-size: 14px; line-height: 1.55; }
+#homeTodayMessage { color: var(--theme-785363); font-size: 14px; line-height: 1.55; }
 .home-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .home-actions button { flex: 1; max-width: 280px; margin: 0; font-weight: bold; }
-.home-actions .primary { background: #d83b80; border-color: #d83b80; }
+.home-actions .primary { background: var(--theme-d83b80); border-color: var(--theme-d83b80); }
 .home-today-choices { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; }
 .home-today-choices button {
   display: flex;
@@ -1117,15 +1157,15 @@ label[for="outfitName"],
   justify-content: center;
   min-height: 76px;
   padding: 5px;
-  background: #fff5f8;
-  border: 2px solid #edc1d2;
+  background: var(--theme-fff5f8);
+  border: 2px solid var(--theme-edc1d2);
 }
-.home-today-choices button[aria-pressed="true"] { border-color: #d83b80; background: #ffe3ef; }
+.home-today-choices button[aria-pressed="true"] { border-color: var(--theme-d83b80); background: var(--theme-ffe3ef); }
 .home-today-choices img { width: 100%; min-width: 0; height: 65px; margin: 0; object-fit: contain; }
 .home-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
-.home-stats > div { padding: 16px 6px; text-align: center; border-radius: 16px; background: #f9deea; }
-.home-stats strong { display: block; color: #a52b61; font-size: 27px; }
-.home-stats span { display: block; margin-top: 5px; font-size: 11px; color: #785363; }
+.home-stats > div { padding: 16px 6px; text-align: center; border-radius: 16px; background: var(--theme-f9deea); }
+.home-stats strong { display: block; color: var(--theme-a52b61); font-size: 27px; }
+.home-stats span { display: block; margin-top: 5px; font-size: 11px; color: var(--theme-785363); }
 .home-match-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1134,51 +1174,51 @@ label[for="outfitName"],
   padding: 22px;
   border-radius: 24px;
   color: white;
-  background: linear-gradient(125deg, #a52b61, #dc4d90);
+  background: linear-gradient(125deg, var(--theme-a52b61), var(--theme-dc4d90));
 }
-.home-match-card .eyebrow { color: #ffdbeb; }
+.home-match-card .eyebrow { color: var(--theme-ffdbeb); }
 .home-match-card h3 { margin: 8px 0; text-align: left; font-size: 20px; }
-.home-match-card p { margin: 0; text-align: left; font-size: 12px; line-height: 1.5; color: #ffe4ef; }
+.home-match-card p { margin: 0; text-align: left; font-size: 12px; line-height: 1.5; color: var(--theme-ffe4ef); }
 #homeMatchScore { font-size: 28px; white-space: nowrap; }
-#homeMatchButton { grid-column: 1 / -1; background: white; color: #a52b61; border: 0; font-weight: bold; }
+#homeMatchButton { grid-column: 1 / -1; background: white; color: var(--theme-a52b61); border: 0; font-weight: bold; }
 
 /* SETTINGS: three sections with account actions always at the top. */
 #settingsDialog { width: min(720px, calc(100vw - 20px)); max-width: 720px; max-height: calc(100dvh - 24px); }
 .settings-shell { padding: 0 18px 22px; }
-.settings-sticky-top { position: sticky; top: 0; z-index: 2; padding: 16px 0 12px; background: #fff5f8; border-bottom: 1px solid #efbad0; }
+.settings-sticky-top { position: sticky; top: 0; z-index: 2; padding: 16px 0 12px; background: var(--theme-fff5f8); border-bottom: 1px solid var(--theme-efbad0); }
 .settings-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.settings-top-row h2 { margin: 0; color: #a52b61; font-size: 22px; }
+.settings-top-row h2 { margin: 0; color: var(--theme-a52b61); font-size: 22px; }
 .settings-account-actions { display: flex; gap: 6px; margin-left: auto; }
 .settings-top-row button { margin: 0; padding: 8px 9px; font-size: 11px; }
-.settings-top-row #signOutButton { display: inline-block; width: auto; background: white; color: #a52b61; }
-.settings-top-row #openDeleteAccountButton { margin: 0; background: #fff5f8; color: #ae2548; border: 1px solid #eaa8b8; }
-#closeSettingsButton { background: white; color: #a52b61; }
+.settings-top-row #signOutButton { display: inline-block; width: auto; background: white; color: var(--theme-a52b61); }
+.settings-top-row #openDeleteAccountButton { margin: 0; background: var(--theme-fff5f8); color: var(--theme-ae2548); border: 1px solid #eaa8b8; }
+#closeSettingsButton { background: white; color: var(--theme-a52b61); }
 .settings-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 14px; }
 .settings-tabs button { padding: 11px 4px; font-size: 13px; font-weight: bold; background: white; }
-.settings-tabs button[aria-selected="true"] { background: #d83b80; border-color: #d83b80; color: white; }
-.settings-tabs button:focus-visible { outline: 3px solid #a52b61; outline-offset: 2px; }
+.settings-tabs button[aria-selected="true"] { background: var(--theme-d83b80); border-color: var(--theme-d83b80); color: white; }
+.settings-tabs button:focus-visible { outline: 3px solid var(--theme-a52b61); outline-offset: 2px; }
 .settings-panel { padding-top: 18px; }
-.settings-panel h3 { color: #a52b61; font-size: 18px; }
-.settings-profile-card { padding: 18px; background: white; border-radius: 18px; border: 1px solid #efbad0; }
+.settings-panel h3 { color: var(--theme-a52b61); font-size: 18px; }
+.settings-profile-card { padding: 18px; background: white; border-radius: 18px; border: 1px solid var(--theme-efbad0); }
 .settings-profile-card h3 { margin: 0 0 8px; }
 #settingsProfileEmail { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
 #profileSettingsActions .primary { margin: 14px auto 0; font-size: 13px; }
 .settings-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.settings-stats > div { min-width: 0; padding: 13px; border-radius: 14px; background: #f9deea; text-align: center; }
-.settings-stats strong { display: block; font-size: 20px; color: #a52b61; overflow-wrap: anywhere; }
-.settings-stats span { display: block; margin-top: 5px; font-size: 11px; color: #785363; }
+.settings-stats > div { min-width: 0; padding: 13px; border-radius: 14px; background: var(--theme-f9deea); text-align: center; }
+.settings-stats strong { display: block; font-size: 20px; color: var(--theme-a52b61); overflow-wrap: anywhere; }
+.settings-stats span { display: block; margin-top: 5px; font-size: 11px; color: var(--theme-785363); }
 #settingsClosetBreakdowns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.settings-breakdown { min-width: 0; padding: 14px; background: white; border: 1px solid #efbad0; border-radius: 16px; }
-.settings-breakdown h4 { margin: 0 0 12px; color: #a52b61; font-size: 13px; }
+.settings-breakdown { min-width: 0; padding: 14px; background: white; border: 1px solid var(--theme-efbad0); border-radius: 16px; }
+.settings-breakdown h4 { margin: 0 0 12px; color: var(--theme-a52b61); font-size: 13px; }
 .settings-breakdown dl { margin: 0; font-size: 12px; }
-.settings-breakdown dl > div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid #fff0f6; }
+.settings-breakdown dl > div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--theme-fff0f6); }
 .settings-breakdown dt { overflow-wrap: anywhere; }
-.settings-breakdown dd { margin: 0; font-weight: bold; color: #a52b61; }
-.settings-faq details { margin: 8px 0; padding: 14px; background: white; border: 1px solid #efbad0; border-radius: 14px; }
-.settings-faq summary { cursor: pointer; color: #a52b61; font-size: 13px; font-weight: bold; line-height: 1.5; }
+.settings-breakdown dd { margin: 0; font-weight: bold; color: var(--theme-a52b61); }
+.settings-faq details { margin: 8px 0; padding: 14px; background: white; border: 1px solid var(--theme-efbad0); border-radius: 14px; }
+.settings-faq summary { cursor: pointer; color: var(--theme-a52b61); font-size: 13px; font-weight: bold; line-height: 1.5; }
 .settings-faq p { margin: 12px 0 0; text-align: left; font-size: 13px; line-height: 1.65; }
-.settings-storage-card { padding: 18px; margin-bottom: 14px; background: white; border: 1px solid #efbad0; border-radius: 18px; }
-.settings-storage-card h4 { margin: 0; color: #a52b61; text-align: center; }
+.settings-storage-card { padding: 18px; margin-bottom: 14px; background: white; border: 1px solid var(--theme-efbad0); border-radius: 18px; }
+.settings-storage-card h4 { margin: 0; color: var(--theme-a52b61); text-align: center; }
 .settings-storage-card p { font-size: 13px; line-height: 1.6; }
 .settings-storage-card .primary { margin: 14px auto; }
 
@@ -1250,7 +1290,7 @@ label[for="outfitName"],
   background: white;
   border: 2px solid white;
   border-radius: 5px;
-  box-shadow: 0 3px 7px rgba(73, 33, 53, 0.18);
+  box-shadow: 0 3px 7px var(--theme-rgb-73-33-53-0p18);
 }
 
 /* Tilt and overlap the first picture. */
@@ -1308,89 +1348,62 @@ label[for="outfitName"],
   margin: 0;
 }
 
+
 /* Confirmation after successfully logging an outfit. */
-#loggedOutfitDialog {
-  width: min(300px, calc(100vw - 40px));
-  padding: 26px 20px;
-  border: 2px solid #db4485;
-  border-radius: 24px;
-  background: #fff5f8;
-  color: #49333d;
-  text-align: center;
-}
-
-#loggedOutfitDialog::backdrop {
-  background: rgba(73, 33, 53, 0.4);
-}
-
-.logged-outfit-check {
-  display: grid;
-  place-items: center;
-  width: 76px;
-  height: 76px;
-  margin: 0 auto 14px;
-  border-radius: 50%;
-  background: #e5f5ec;
-  color: #23865e;
-  font-size: 50px;
-  font-weight: bold;
-}
-
-#loggedOutfitHeading {
-  margin: 10px 0;
-  color: #a52b61;
-  font-size: 24px;
-}
-
-#loggedOutfitDialog p {
-  font-size: 14px;
-}
-
-#finishLoggedOutfitButton {
-  margin-top: 8px;
-  background: #db4485;
-  color: white;
-  border-color: #db4485;
-}
-/* A preselected outfit doesn't need the outfit-selection controls. */
+#loggedOutfitDialog { width: min(300px, calc(100vw - 40px)); padding: 26px 20px; border: 2px solid var(--theme-db4485); border-radius: 24px; background: var(--theme-fff5f8); color: var(--theme-49333d); text-align: center; }
+#loggedOutfitDialog::backdrop { background: var(--theme-rgb-73-33-53-0p4); }
+.logged-outfit-check { display: grid; place-items: center; width: 76px; height: 76px; margin: 0 auto 14px; border-radius: 50%; background: #e5f5ec; color: #23865e; font-size: 50px; font-weight: bold; }
+#loggedOutfitHeading { margin: 10px 0; color: var(--theme-a52b61); font-size: 24px; }
+#loggedOutfitDialog p { font-size: 14px; }
+#finishLoggedOutfitButton { margin-top: 8px; background: var(--theme-db4485); color: white; border-color: var(--theme-db4485); }
+/* Direct logging skips the clothing/outfit picker. */
 #logOutfitDialog.quick-log .filter-grid,
 #logOutfitDialog.quick-log label[for="logSearch"],
 #logOutfitDialog.quick-log #logSearch,
 #logOutfitDialog.quick-log label:has(#logFavoritesOnly),
 #logOutfitDialog.quick-log #createAndLogButton,
 #logOutfitDialog.quick-log #logResultsStatus,
-#logOutfitDialog.quick-log #logOutfitGrid {
-  display: none !important;
+#logOutfitDialog.quick-log #logOutfitGrid { display: none !important; }
+#logOutfitDialog.quick-log #logOutfitPanel > h3:not(#logOutfitHeading) { display: none; }
+.log-final-actions { position: sticky; top: 0; z-index: 3; padding: 10px 0; background: var(--theme-fff5f8); border-bottom: 1px solid var(--theme-efbad0); }
+.log-final-actions #logSavedButton { margin: 0 auto; }
+.log-final-actions #logStatus { margin: 8px 0 0; text-align: center; font-size: 13px; }
+.log-final-actions #logStatus:empty { display: none; }
+
+/* Colorway selection lives in Profile and uses the active theme. */
+#profileSettingsActions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+#profileSettingsActions .primary { margin: 14px 0 0; }
+#colorwayDialog {
+  width: min(440px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 22px;
+  border: 2px solid var(--theme-a94370);
+  border-radius: 22px;
+  background: var(--theme-fff5f8);
+  color: var(--theme-49333d);
 }
-
-/* Hide the extra Selected Outfit heading in the smaller popup. */
-#logOutfitDialog.quick-log
-#logOutfitPanel > h3:not(#logOutfitHeading) {
-  display: none;
-}
-
-/* Keep the final action visible when scrolling through outfits. */
-.log-final-actions {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-
-  padding: 10px 0;
-  background: #fff5f8;
-  border-bottom: 1px solid #efbad0;
-}
-
-.log-final-actions #logSavedButton {
-  margin: 0 auto;
-}
-
-.log-final-actions #logStatus {
-  margin: 8px 0 0;
-  text-align: center;
+#colorwayDialog::backdrop { background: var(--theme-rgb-73-33-53-0p55); }
+#colorwayHeading { margin: 0 0 10px; color: var(--theme-a52b61); font-size: 22px; }
+#colorwayDialog > p { font-size: 13px; line-height: 1.55; }
+.colorway-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+#colorwayDialog .colorway-options button {
+  min-width: 0;
+  padding: 13px 7px;
+  background: white;
+  color: var(--theme-49333d);
+  border: 2px solid var(--theme-efbad0);
   font-size: 13px;
+  font-weight: bold;
 }
-
-.log-final-actions #logStatus:empty {
-  display: none;
+#colorwayDialog .colorway-options button[aria-pressed="true"] {
+  background: var(--theme-fff0f6);
+  color: var(--theme-a52b61);
+  border-color: var(--theme-a94370);
+  box-shadow: 0 0 0 1px var(--theme-a94370);
 }
-
+.colorway-swatches { display: flex; justify-content: center; gap: 0; margin-bottom: 9px; }
+.colorway-swatches > span { display: block; width: 29px; height: 29px; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
+.colorway-swatches > span + span { margin-left: -5px; }
+#colorwayDialog .button-row { margin-bottom: 0; }
+#colorwayDialog .button-row .primary { margin: 0; }

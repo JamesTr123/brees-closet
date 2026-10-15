@@ -29,6 +29,10 @@ if (setupMessage) {
 
 // Hide the app while signing in or changing accounts.
 Account.lockApp = function () {
+    // Clear the previous account's theme while loading another account.
+if (typeof Colorways !== "undefined") {
+  Colorways.sync(null);
+}
   if (typeof Dashboard !== "undefined") Dashboard.clear();
   // Sign Out remains available if loading the account fails.
   App.get("signedInPanel").appendChild(App.get("signOutButton"));
@@ -106,6 +110,10 @@ Account.showUser = function (user) {
     : "";
 
   App.get("loginPassword").value = "";
+  // Restore this account's colorway, or pink when signed out.
+if (typeof Colorways !== "undefined") {
+  Colorways.sync(user);
+}
 };
 
 // Load the signed-in account's closet before revealing the app.
