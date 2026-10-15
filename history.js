@@ -214,6 +214,15 @@ History.preview = function () {
 History.renderPicker = function () {
   const grid = App.get("logOutfitGrid");
   grid.replaceChildren();
+  // This outfit was chosen on another page.
+// Show its preview without asking her to select it again.
+if (
+  App.get("logOutfitDialog").classList.contains("quick-log")
+) {
+  App.get("logStatus").textContent = "";
+  History.preview();
+  return;
+}
 
   const search = App.get("logSearch").value.trim().toLowerCase();
   const color = App.get("logColorFilter").value;
@@ -349,6 +358,16 @@ History.loadPicker = async function () {
 // Open logging from My Outfits, a saved card, or a suggestion.
 History.openLog = function (ids = []) {
   if (History.busy || Outfits.busy || !Account.user) return;
+  // A specific outfit only needs its date confirmed.
+// General logging still shows the outfit picker.
+App.get("logOutfitDialog").classList.toggle(
+  "quick-log",
+  ids.length > 0
+);
+
+App.get("logOutfitHeading").textContent = ids.length
+  ? "Log This Outfit"
+  : "Log an Outfit";
   // Remember the main page that opened logging.
 const currentTab = document.querySelector(".bottom-tabs button.active");
 
@@ -386,6 +405,8 @@ History.logReturnPage =
 
   const dialog = App.get("logOutfitDialog");
   if (!dialog.open) dialog.showModal();
+  // Always start at the top when opening the logging popup.
+dialog.scrollTop = 0;
 
   History.loadPicker();
 };
@@ -716,3 +737,17 @@ History.finishLogging = async function (saved) {
     alert("Outfit logged, but the photo prompt could not open.");
   }
 };
+// Move the existing Log button and status message below the filters.
+// Moving them preserves their existing click handlers.
+const logActionsBar = document.createElement("div");
+
+logActionsBar.className = "log-final-actions";
+
+logActionsBar.append(
+  App.get("logSavedButton"),
+  App.get("logStatus")
+);
+
+App.get("logFavoritesOnly")
+  .closest("label")
+  .after(logActionsBar);

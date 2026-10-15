@@ -1352,4 +1352,45 @@ label[for="outfitName"],
   color: white;
   border-color: #db4485;
 }
+/* A preselected outfit doesn't need the outfit-selection controls. */
+#logOutfitDialog.quick-log .filter-grid,
+#logOutfitDialog.quick-log label[for="logSearch"],
+#logOutfitDialog.quick-log #logSearch,
+#logOutfitDialog.quick-log label:has(#logFavoritesOnly),
+#logOutfitDialog.quick-log #createAndLogButton,
+#logOutfitDialog.quick-log #logResultsStatus,
+#logOutfitDialog.quick-log #logOutfitGrid {
+  display: none !important;
+}
+
+/* Hide the extra Selected Outfit heading in the smaller popup. */
+#logOutfitDialog.quick-log
+#logOutfitPanel > h3:not(#logOutfitHeading) {
+  display: none;
+}
+
+/* Keep the final action visible when scrolling through outfits. */
+.log-final-actions {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+
+  padding: 10px 0;
+  background: #fff5f8;
+  border-bottom: 1px solid #efbad0;
+}
+
+.log-final-actions #logSavedButton {
+  margin: 0 auto;
+}
+
+.log-final-actions #logStatus {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.log-final-actions #logStatus:empty {
+  display: none;
+}
 
