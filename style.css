@@ -1308,5 +1308,48 @@ label[for="outfitName"],
   margin: 0;
 }
 
+/* Confirmation after successfully logging an outfit. */
+#loggedOutfitDialog {
+  width: min(300px, calc(100vw - 40px));
+  padding: 26px 20px;
+  border: 2px solid #db4485;
+  border-radius: 24px;
+  background: #fff5f8;
+  color: #49333d;
+  text-align: center;
+}
 
+#loggedOutfitDialog::backdrop {
+  background: rgba(73, 33, 53, 0.4);
+}
+
+.logged-outfit-check {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #e5f5ec;
+  color: #23865e;
+  font-size: 50px;
+  font-weight: bold;
+}
+
+#loggedOutfitHeading {
+  margin: 10px 0;
+  color: #a52b61;
+  font-size: 24px;
+}
+
+#loggedOutfitDialog p {
+  font-size: 14px;
+}
+
+#finishLoggedOutfitButton {
+  margin-top: 8px;
+  background: #db4485;
+  color: white;
+  border-color: #db4485;
+}
 

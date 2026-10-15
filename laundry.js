@@ -1,7 +1,7 @@
 // LAUNDRY GRID AND SWIPE MODE
 const Laundry = {
   reviewing: false,
-  mode: "grid",
+  mode: "swipe",
   busy: false,
   refreshNumber: 0,
   clothes: [],
@@ -59,6 +59,27 @@ Laundry.dayNumber = function (value) {
 // Read clothing and find each item's latest recorded wear date.
 Laundry.loadData = async function () {
   const data = await App.read(["clothes", "history"]);
+  // Older laundry records don't have an added-to-basket time.
+// Start their clock once, then save it across devices.
+const untimedLaundry = data.clothes.filter(function (item) {
+  return item.inLaundry &&
+    !Number.isFinite(Date.parse(item.laundrySince));
+});
+
+if (untimedLaundry.length) {
+  const startedAt = new Date().toISOString();
+
+  await App.write(untimedLaundry.map(function (item) {
+    return {
+      store: "clothes",
+      value: { ...item, laundrySince: startedAt }
+    };
+  }));
+
+  untimedLaundry.forEach(function (item) {
+    item.laundrySince = startedAt;
+  });
+}
   const lastWorn = new Map();
 
   data.history.forEach(function (entry) {
@@ -189,6 +210,7 @@ Laundry.renderGrid = function () {
 };
 
 // Save only the laundry status, preserving the item's other details.
+// Save the status and remember when the item entered laundry.
 Laundry.saveStatus = async function (id, inLaundry) {
   const data = await App.read(["clothes"]);
 
@@ -198,10 +220,33 @@ Laundry.saveStatus = async function (id, inLaundry) {
 
   if (!latest) throw new Error("Item was deleted");
 
+  const knownTime = Date.parse(latest.laundrySince);
+
+  const savedItem = {
+    ...latest,
+    inLaundry: inLaundry,
+
+    // Keep the original time if it's already in laundry.
+    // A newly added item starts a new clock.
+    // Marking it clean clears that clock.
+    laundrySince: inLaundry
+      ? latest.inLaundry && Number.isFinite(knownTime)
+        ? latest.laundrySince
+        : new Date().toISOString()
+      : null
+  };
+
   await App.write([{
     store: "clothes",
-    value: { ...latest, inLaundry: inLaundry }
+    value: savedItem
   }]);
+
+  // Keep the current swipe queue's copy updated too.
+  const localItem = Laundry.clothes.find(function (item) {
+    return item.id === id;
+  });
+
+  if (localItem) Object.assign(localItem, savedItem);
 };
 
 Laundry.setBusy = function (busy) {
@@ -210,16 +255,27 @@ Laundry.setBusy = function (busy) {
 };
 
 // Build a queue of unique clothing worn in the last four calendar days.
+// Review recently worn clothes and older laundry items.
 Laundry.startSwipeReview = function () {
   const today = Laundry.dayNumber(History.today());
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
 
   Laundry.queue = Laundry.clothes.filter(function (item) {
+    if (item.inLaundry) {
+      // Don't immediately ask about clothes just put in laundry.
+      const since = Date.parse(item.laundrySince);
+
+      return Number.isFinite(since) &&
+        now - since >= oneDay;
+    }
+
+    // Clean clothes qualify if worn today or the previous three days.
     const date = Laundry.lastWorn.get(item.id);
     if (!date) return false;
 
     const age = today - Laundry.dayNumber(date);
 
-    // Today plus the previous three days.
     return age >= 0 && age < 4;
   });
 
@@ -248,7 +304,7 @@ card.hidden = !item;
 
     App.get("laundryStatus").textContent = Laundry.queue.length
       ? "All recent clothes reviewed! Your changes are saved."
-      : "No clothes were logged as worn in the last four days.";
+      : "Nothing to review: no recent clean clothes or laundry items ready for a check.";
 
     return;
   }
@@ -263,10 +319,14 @@ card.hidden = !item;
   title.textContent = item.name;
 
   const details = document.createElement("p");
-  details.textContent =
-    "Last worn: " +
-    History.formatDate(Laundry.lastWorn.get(item.id)) +
-    " • Currently " + (item.inLaundry ? "in laundry" : "clean");
+  // An older laundry item might not have any recorded wear date.
+const wornDate = Laundry.lastWorn.get(item.id);
+
+details.textContent =
+  (wornDate
+    ? "Last worn: " + History.formatDate(wornDate)
+    : "No recorded wears") +
+  " • Currently " + (item.inLaundry ? "in laundry" : "clean");
 
   card.append(App.photo(item), title, details);
 };
@@ -584,5 +644,14 @@ function refreshLaundryIfVisible() {
   }
 }
 
-document.addEventListener("closet-page-changed", refreshLaundryIfVisible);
+// Open in Swipe Mode whenever the Laundry tab is selected.
+document.addEventListener("closet-page-changed", function () {
+  if (!App.get("laundryPage").hidden && !Laundry.busy) {
+    Laundry.mode = "swipe";
+    Laundry.reviewing = false;
+    Laundry.updateControls();
+  }
+
+  refreshLaundryIfVisible();
+});
 document.addEventListener("closet-data-changed", refreshLaundryIfVisible);

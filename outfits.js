@@ -302,16 +302,17 @@ App.get("saveOutfitButton").addEventListener("click", async function () {
       : "Save Outfit";
   }
 
-  if (saved) {
-    try {
-      await OutfitPhotos.offer(
-        saved.outfit.id,
-        saved.entry ? saved.entry.id : null
-      );
-    } catch (error) {
-      alert("Outfit saved, but the photo prompt could not open.");
-    }
+  if (saved && saved.entry) {
+  // This outfit was logged, so show the logging confirmation.
+  await History.finishLogging(saved);
+} else if (saved) {
+  // An ordinary outfit save keeps its existing photo prompt.
+  try {
+    await OutfitPhotos.offer(saved.outfit.id);
+  } catch (error) {
+    alert("Outfit saved, but the photo prompt could not open.");
   }
+}
 });
 
 // Show saved outfits, favorites, and last worn dates.

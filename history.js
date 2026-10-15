@@ -349,6 +349,11 @@ History.loadPicker = async function () {
 // Open logging from My Outfits, a saved card, or a suggestion.
 History.openLog = function (ids = []) {
   if (History.busy || Outfits.busy || !Account.user) return;
+  // Remember the main page that opened logging.
+const currentTab = document.querySelector(".bottom-tabs button.active");
+
+History.logReturnPage =
+  currentTab?.dataset.page || "homePage";
 
   // Close the builder and any suggestion popup first.
   Outfits.closeBuilder();
@@ -460,14 +465,10 @@ App.get("logSavedButton").addEventListener("click", async function () {
     App.get("logSavedButton").textContent = "Log Outfit";
   }
 
-  // Logging has already succeeded even if the photo prompt fails.
-  if (saved) {
-    try {
-      await OutfitPhotos.offer(saved.outfit.id, saved.entry.id);
-    } catch (error) {
-      alert("Outfit logged, but the photo prompt could not open.");
-    }
-  }
+ // Show success, return to the original tab, then offer a photo.
+if (saved) {
+  await History.finishLogging(saved);
+}
 });
 
 // WEAR HISTORY
@@ -619,3 +620,99 @@ const loggingFilters = App.get("logOutfitPanel").querySelector(
 );
 
 loggingFilters.before(App.get("createAndLogButton"));
+// Remember the main tab where logging started.
+History.logReturnPage = "homePage";
+
+// Create the success popup once.
+const loggedOutfitDialog = document.createElement("dialog");
+
+loggedOutfitDialog.id = "loggedOutfitDialog";
+
+loggedOutfitDialog.setAttribute(
+  "aria-labelledby",
+  "loggedOutfitHeading"
+);
+
+loggedOutfitDialog.innerHTML = `
+  <span class="logged-outfit-check" aria-hidden="true">✓</span>
+  <h2 id="loggedOutfitHeading">Outfit Logged!</h2>
+  <p>Taking you back...</p>
+  <button id="finishLoggedOutfitButton" type="button">
+    Continue
+  </button>
+`;
+
+document.body.appendChild(loggedOutfitDialog);
+
+App.get("finishLoggedOutfitButton").addEventListener(
+  "click",
+  function () {
+    loggedOutfitDialog.close();
+  }
+);
+
+// Used by both saved outfits and Put Together an Outfit.
+History.finishLogging = async function (saved) {
+  const userId = Account.user?.id;
+  if (!userId) return;
+
+  const returnPage = History.logReturnPage;
+
+  // Close the pickers so they don't reappear after the photo prompt.
+  [
+    "logOutfitDialog",
+    "outfitDialog",
+    "suggestionsDialog",
+    "stylePieceDialog"
+  ].forEach(function (id) {
+    const dialog = App.get(id);
+
+    if (dialog?.open) dialog.close();
+  });
+
+  document.body.style.overflow = "";
+
+  // Continue closes it sooner; otherwise it closes automatically.
+  await new Promise(function (resolve) {
+    let timer;
+
+    loggedOutfitDialog.addEventListener(
+      "close",
+      function () {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true }
+    );
+
+    loggedOutfitDialog.showModal();
+
+    timer = setTimeout(function () {
+      if (loggedOutfitDialog.open) {
+        loggedOutfitDialog.close();
+      }
+    }, 1400);
+  });
+
+  // Don't reopen an account's screens after signing out.
+  if (
+    Account.user?.id !== userId ||
+    document.body.classList.contains("account-setup")
+  ) {
+    return;
+  }
+
+  // Return to the original Home, My Outfits, or other main tab.
+  const tab = document.querySelector(
+    '.bottom-tabs button[data-page="' + returnPage + '"]'
+  );
+
+  if (tab) tab.click();
+
+  // Keep the existing optional outfit photo feature.
+  try {
+    await OutfitPhotos.offer(saved.outfit.id, saved.entry.id);
+  } catch (error) {
+    alert("Outfit logged, but the photo prompt could not open.");
+  }
+};
