@@ -1,0 +1,56 @@
+/* CLOTHING COLOR PALETTE */
+.clothing-color-picker {
+  min-width: 0;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--theme-c696aa, #c696aa);
+  border-radius: 14px;
+}
+.clothing-color-picker .color-help,
+.clothing-color-picker .selected-clothing-color {
+  margin: 6px 0 10px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+.clothing-color-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 5px;
+}
+.clothing-color-grid .clothing-color-swatch {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+.clothing-color-swatch[aria-pressed="true"] {
+  outline: 2px solid var(--theme-a94370, #a94370);
+  outline-offset: 1px;
+}
+.clothing-color-swatch:focus-visible {
+  outline: 3px solid var(--theme-49333d, #49333d);
+  outline-offset: 2px;
+}
+.custom-clothing-color {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: end;
+  margin-top: 10px;
+}
+.custom-clothing-color label { min-width: 0; font-size: 0.85rem; }
+.custom-clothing-color input { box-sizing: border-box; width: 100%; height: 40px; }
+.clothing-color-picker .multicolor-choice {
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+.multicolor-choice[aria-pressed="true"] {
+  outline: 2px solid var(--theme-a94370, #a94370);
+}

@@ -12,6 +12,7 @@ App.types = {
   Top: [
     "Sweatshirt / Sweater",
     "T-shirt",
+    "Long Sleeve",
     "Tank top",
     "Crop top",
     "Vest"
@@ -245,6 +246,7 @@ Clothing.close = function () {
   Clothing.editingId = null;
 
   App.get("clothingForm").reset();
+  if (typeof ColorPicker !== "undefined") ColorPicker.reset();
   App.get("clothingForm").hidden = true;
   App.get("preview").removeAttribute("src");
   App.get("layerQuestion").hidden = false;
@@ -303,6 +305,7 @@ Clothing.edit = function (item) {
   App.get("itemName").value = item.name;
   App.get("category").value = item.category;
   App.get("color").value = item.color;
+  ColorPicker.setItem(item);
   App.get("warmth").value = String(item.warmth);
   App.get("canLayer").checked = item.canLayer;
   App.get("layerQuestion").hidden = item.category !== "Top";
@@ -345,6 +348,9 @@ App.get("clothingForm").addEventListener("submit", async function (event) {
     return;
   }
 
+  // Make sure a typed custom shade is valid before saving.
+  if (!ColorPicker.validate()) return;
+
   const item = {
     id: Clothing.editingId || crypto.randomUUID(),
     name: name,
@@ -352,6 +358,8 @@ App.get("clothingForm").addEventListener("submit", async function (event) {
     category: App.get("category").value,
     clothingType: App.get("clothingType").value,
     color: App.get("color").value,
+    // The color name keeps old filters working; this stores the precise shade.
+    colorHex: ColorPicker.exact || "",
     warmth: Number(App.get("warmth").value),
     styles: styles,
     canLayer: App.get("category").value === "Top" &&
@@ -524,6 +532,8 @@ function validClothing(item) {
     (item.clothingType === undefined ||
       App.types[item.category].includes(item.clothingType)) &&
     App.colors.includes(item.color) &&
+    (item.colorHex === undefined || item.colorHex === "" ||
+      Styling.isHex(item.colorHex)) &&
     [1, 2, 3].includes(item.warmth) &&
     Array.isArray(item.styles) && item.styles.length > 0 &&
     item.styles.every(function (style) {
@@ -714,7 +724,7 @@ Clothing.showInformation = async function (itemId) {
     const lines = [
       "Category: " + item.category,
       "Type: " + (item.clothingType || "Not set"),
-      "Color: " + item.color,
+      "Color: " + item.color + (item.colorHex ? " (" + item.colorHex + ")" : ""),
       "Warmth: " + item.warmth + " out of 3",
       "Styles: " + item.styles.join(", "),
       "Status: " + (item.inLaundry ? "In laundry" : "Available")

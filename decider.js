@@ -9,7 +9,7 @@ const Decider = {
 };
 
 // The overlapping warmth ranges we agreed on.
-// "ideal" affects ranking within the allowed range.
+// "ideal" affects ranking. Automatic weather does not exclude other warmth totals.
 Decider.ranges = {
   warm: { min: 2, max: 4, ideal: 2.5 },
   mild: { min: 2, max: 5, ideal: 3.5 },
@@ -37,44 +37,9 @@ Decider.family = function (color) {
   return color.replace(/^(Light |Dark )/, "");
 };
 
-// Color compatibility improves ranking but never excludes outfits.
+// The shared style engine uses exact shades when available.
 Decider.colorScore = function (pieces) {
-  const neutrals = ["White", "Black", "Cream", "Gray", "Brown"];
-
-  const friendlyPairs = [
-    ["Blue", "Green"],
-    ["Blue", "Pink"],
-    ["Blue", "Purple"],
-    ["Green", "Yellow"],
-    ["Pink", "Purple"],
-    ["Red", "Blue"],
-    ["Orange", "Blue"]
-  ];
-
-  let total = 0;
-  let comparisons = 0;
-
-  for (let a = 0; a < pieces.length; a++) {
-    for (let b = a + 1; b < pieces.length; b++) {
-      const first = Decider.family(pieces[a].color);
-      const second = Decider.family(pieces[b].color);
-      comparisons++;
-
-      if (first === second) {
-        total += 1;
-      } else if (neutrals.includes(first) || neutrals.includes(second)) {
-        total += 0.9;
-      } else if (friendlyPairs.some(function (pair) {
-        return pair.includes(first) && pair.includes(second);
-      })) {
-        total += 0.75;
-      } else {
-        total += 0.35;
-      }
-    }
-  }
-
-  return comparisons ? total / comparisons : 0;
+  return Styling.colors(pieces);
 };
 
 // Compare an item with a reference piece from a saved outfit.
@@ -319,6 +284,9 @@ const rangeName = isPreview
   }
 
   const range = Decider.ranges[rangeName];
+  // Automatic weather is a gentle ranking preference. Only an explicit
+  // warmth filter excludes outfits outside its chosen range.
+  const strictWarmth = !isPreview && !requiredPieceId && choice !== "weather";
   // Generate both kinds for the main suggestions popup.
 // Style This Piece still uses its own selected mode.
 const source = requiredPieceId
@@ -462,6 +430,15 @@ if (isPreview) {
       };
     });
 
+    // Learn once for this request, rather than for every possible outfit.
+    const profile = Styling.profile(data, History.today());
+    const familiarPatterns = new Set();
+    [...data.outfits, ...data.history].forEach(function (example) {
+      const pieces = example.clothingIds.map(function (id) { return byId.get(id); });
+      if (pieces.some(function (item) { return !item; })) return;
+      familiarPatterns.add(Styling.topPattern(pieces));
+    });
+
     const candidates = new Map();
     const today = Decider.dayNumber(History.today());
 
@@ -503,7 +480,7 @@ if (outfitTops.length > 1) {
   })) return;
 
   // These types can form the bottom layer.
-  const baseTypes = ["T-shirt", "Tank top", "Crop top"];
+  const baseTypes = ["T-shirt", "Long Sleeve", "Tank top", "Crop top"];
 
   // Only sweatshirts/sweaters and vests act as outer layers.
   const outerTypes = ["Sweatshirt / Sweater", "Vest"];
@@ -545,38 +522,7 @@ if (outfitTops.length > 1) {
   // For NEW combinations, only use layering patterns
   // she has demonstrated by saving or logging them.
   if (!savedOutfit) {
-    function topPattern(items) {
-      return JSON.stringify(
-        items.map(function (item) {
-          return item.clothingType;
-        }).sort()
-      );
-    }
-
-    const requestedPattern = topPattern(outfitTops);
-    const examples = [...data.outfits, ...data.history];
-
-    const familiarPattern = examples.some(function (example) {
-      const examplePieces = example.clothingIds.map(function (id) {
-        return byId.get(id);
-      });
-
-      // Do not learn from incomplete outfits with deleted pieces.
-      if (examplePieces.some(function (item) {
-        return !item;
-      })) return false;
-
-      const exampleTops = examplePieces.filter(function (item) {
-        return item.category === "Top";
-      });
-
-      return exampleTops.every(function (item) {
-        return Boolean(item.clothingType);
-      }) &&
-        topPattern(exampleTops) === requestedPattern;
-    });
-
-    if (!familiarPattern) return;
+    if (!familiarPatterns.has(Styling.topPattern(outfitTops))) return;
   }
 }
       const topCount = pieces.filter(function (item) {
@@ -587,7 +533,7 @@ if (outfitTops.length > 1) {
       if (topCount === 3 && !savedOutfit && !threeTopTemplate) return;
 
       const totalWarmth = App.totalWarmth(pieces);
-      if (totalWarmth < range.min || totalWarmth > range.max) return;
+      if (strictWarmth && (totalWarmth < range.min || totalWarmth > range.max)) return;
 
       // All pieces must share at least one selected style.
       // Selecting Fancy + Casual means either complete style works.
@@ -616,29 +562,10 @@ if (source === "existing" && !savedOutfit && !stats) return;
       // New means unsaved and with no recorded wear history.
       if (source === "new" && (savedOutfit || stats)) return;
 
-      // Weather fit contributes up to 30 points.
-      // Cold days favor warmer totals without always choosing maximum.
-      const weatherFit = range.ideal === null
-        ? 1
-        : Math.max(
-            0.4,
-            1 - Math.abs(totalWarmth - range.ideal) * 0.16
-          );
-
-      const similarity = Decider.similarity(pieces, references);
-      const colors = Decider.colorScore(pieces);
+      const evaluation = Styling.score(pieces, savedOutfit, range, profile);
+      const similarity = evaluation.personal;
       const wears = stats ? stats.dates.size : 0;
-
-      // Score out of 100:
-      // weather 30, favorite 30, similarity 15,
-      // colors 15, recorded frequency 10.
-      const score = Math.min(100, Math.round(
-        weatherFit * 30 +
-        (savedOutfit?.favorite ? 30 : 0) +
-        similarity * 15 +
-        colors * 15 +
-        Math.min(wears / 5, 1) * 10
-      ));
+      const score = evaluation.score;
 
       candidates.set(key, {
         key: key,
@@ -646,6 +573,7 @@ if (source === "existing" && !savedOutfit && !stats) return;
         pieces: pieces,
         saved: savedOutfit,
         score: score,
+        reasons: evaluation.reasons,
         warmth: totalWarmth,
         last: last,
         similarity: similarity,
@@ -694,6 +622,8 @@ if (source === "existing") {
       for (let a = 0; a < tops.length; a++) {
         for (let b = a + 1; b < tops.length; b++) {
           if (!tops[a].canLayer && !tops[b].canLayer) continue;
+          // Avoid generating thousands of layered outfits she has never used.
+          if (!familiarPatterns.has(Styling.topPattern([tops[a], tops[b]]))) continue;
 
           for (const bottom of bottoms) {
             consider([tops[a].id, tops[b].id, bottom.id]);
@@ -759,7 +689,7 @@ if (requiredPieceId) {
   destination.replaceChildren();
 
   const visible = Decider.pieceMode === "new"
-    ? rankedResults.slice(0, 3)
+    ? Styling.selectDistinct(rankedResults, 3, requiredPieceId)
     : rankedResults;
 
   visible.forEach(function (candidate, index) {
@@ -821,7 +751,7 @@ Decider.showMore = function () {
   });
 
   // Take only the requested number, or fewer if fewer qualify.
-  const visible = matching.slice(0, limits[mode]);
+  const visible = Styling.selectDistinct(matching, limits[mode]);
 
   const grid = App.get("suggestionGrid");
   grid.replaceChildren();
@@ -846,8 +776,8 @@ Decider.showMore = function () {
   App.get("moreSuggestionsButton").hidden = true;
 
   App.get("deciderStatus").textContent = visible.length
-    ? "Showing " + visible.length + " of " +
-      matching.length + " matching outfits, strongest first."
+    ? "Showing " + visible.length + " different look(s), strongest first. " +
+      "Similar variations are left out."
     : "No matching outfits in this tab. Try another tab " +
       "or use Back to adjust your filters.";
 };
@@ -959,9 +889,8 @@ if (candidate.saved && candidate.saved.photo) {
     "Total warmth: " + candidate.warmth
   ];
 
-  if (!candidate.saved && candidate.similarity >= 0.65) {
-    reasons.push("Similar to outfits you like");
-  }
+  // Explain the leading reasons without making the card much taller.
+  reasons.push(...(candidate.reasons || []).slice(0, 2));
 
   if (candidate.wears >= 3) reasons.push("Frequently worn");
 
@@ -1287,26 +1216,7 @@ Decider.showExistingForPiece = async function (itemId) {
       ? Decider.ranges[Decider.weatherRange]
       : Decider.ranges.any;
 
-    // Build references used by our normal similarity scoring.
-    const references = data.outfits.map(function (outfit) {
-      const key = App.signature(outfit.clothingIds);
-
-      const wearDays = new Set(
-        data.history.filter(function (entry) {
-          return App.signature(entry.clothingIds) === key;
-        }).map(function (entry) {
-          return entry.date;
-        })
-      );
-
-      return {
-        pieces: outfit.clothingIds.map(function (id) {
-          return byId.get(id);
-        }).filter(Boolean),
-        favorite: outfit.favorite,
-        wears: wearDays.size
-      };
-    });
+    const profile = Styling.profile(data, History.today());
 
     const combinations = new Map();
 
@@ -1331,25 +1241,12 @@ Decider.showExistingForPiece = async function (itemId) {
 
       const complete = pieces.length === outfit.clothingIds.length;
 
-      // Weather fit changes the score, not whether the outfit appears.
-      const weatherFit = !complete
-        ? 0
-        : range.ideal === null
-          ? 1
-          : Math.max(
-              0,
-              1 - Math.abs(warmth - range.ideal) * 0.16
-            );
-
-      const similarity = Decider.similarity(pieces, references);
-
-      const score = Math.min(100, Math.round(
-        weatherFit * 30 +
-        (outfit.favorite ? 30 : 0) +
-        similarity * 15 +
-        Decider.colorScore(pieces) * 15 +
-        Math.min(wears / 5, 1) * 10
-      ));
+      // Keep every saved matching outfit visible, even if a piece was deleted.
+      const evaluation = complete
+        ? Styling.score(pieces, outfit, range, profile)
+        : { score: 0, personal: 0, reasons: ["Contains a deleted clothing item"] };
+      const similarity = evaluation.personal;
+      const score = evaluation.score;
 
       const candidate = {
         key: key,
@@ -1357,6 +1254,7 @@ Decider.showExistingForPiece = async function (itemId) {
         pieces: pieces,
         saved: outfit,
         score: score,
+        reasons: evaluation.reasons,
         warmth: warmth,
         last: dates.length ? dates[dates.length - 1] : "",
         similarity: similarity,

@@ -5,6 +5,7 @@ const Laundry = {
   busy: false,
   refreshNumber: 0,
   clothes: [],
+  history: [],
   lastWorn: new Map(),
   queue: [],
   position: 0,
@@ -101,7 +102,11 @@ if (untimedLaundry.length) {
       a.name.localeCompare(b.name);
   });
 
-  return { clothes: data.clothes, lastWorn: lastWorn };
+  return {
+  clothes: data.clothes,
+  lastWorn: lastWorn,
+  history: data.history
+};
 };
 
 // Set buttons and visibility to match the current mode.
@@ -133,6 +138,7 @@ Laundry.render = async function () {
 
     Laundry.clothes = data.clothes;
     Laundry.lastWorn = data.lastWorn;
+    Laundry.history = data.history;
     Laundry.updateControls();
 
     if (Laundry.mode === "swipe") {
@@ -211,8 +217,39 @@ Laundry.renderGrid = function () {
 
 // Save only the laundry status, preserving the item's other details.
 // Save the status and remember when the item entered laundry.
+// Prepare a laundry decision without changing the original item.
+Laundry.reviewedItem = function (item, inLaundry, history) {
+  const now = new Date().toISOString();
+  const knownTime = Date.parse(item.laundrySince);
+
+  return {
+    ...item,
+    inLaundry: inLaundry,
+
+    // Keep when it originally entered laundry.
+    laundrySince: inLaundry
+      ? item.inLaundry && Number.isFinite(knownTime)
+        ? item.laundrySince
+        : now
+      : null,
+
+    // Every decision gets a fresh review time.
+    // Another dirty swipe starts another 24-hour wait.
+    laundryReviewedAt: now,
+
+    // Remember the wears already covered by this decision.
+    // A different history entry or changed wear date counts as new.
+    laundryReviewedWears: history.filter(function (entry) {
+      return entry.clothingIds.includes(item.id);
+    }).map(function (entry) {
+      return entry.id + "|" + entry.date;
+    })
+  };
+};
+
+// Save the decision, its time, and the wears already reviewed.
 Laundry.saveStatus = async function (id, inLaundry) {
-  const data = await App.read(["clothes"]);
+  const data = await App.read(["clothes", "history"]);
 
   const latest = data.clothes.find(function (item) {
     return item.id === id;
@@ -220,28 +257,18 @@ Laundry.saveStatus = async function (id, inLaundry) {
 
   if (!latest) throw new Error("Item was deleted");
 
-  const knownTime = Date.parse(latest.laundrySince);
-
-  const savedItem = {
-    ...latest,
-    inLaundry: inLaundry,
-
-    // Keep the original time if it's already in laundry.
-    // A newly added item starts a new clock.
-    // Marking it clean clears that clock.
-    laundrySince: inLaundry
-      ? latest.inLaundry && Number.isFinite(knownTime)
-        ? latest.laundrySince
-        : new Date().toISOString()
-      : null
-  };
+  const savedItem = Laundry.reviewedItem(
+    latest,
+    inLaundry,
+    data.history
+  );
 
   await App.write([{
     store: "clothes",
     value: savedItem
   }]);
 
-  // Keep the current swipe queue's copy updated too.
+  // Update the current review only after saving succeeds.
   const localItem = Laundry.clothes.find(function (item) {
     return item.id === id;
   });
@@ -256,6 +283,7 @@ Laundry.setBusy = function (busy) {
 
 // Build a queue of unique clothing worn in the last four calendar days.
 // Review recently worn clothes and older laundry items.
+// Only show clothes that actually need another decision.
 Laundry.startSwipeReview = function () {
   const today = Laundry.dayNumber(History.today());
   const now = Date.now();
@@ -263,20 +291,36 @@ Laundry.startSwipeReview = function () {
 
   Laundry.queue = Laundry.clothes.filter(function (item) {
     if (item.inLaundry) {
-      // Don't immediately ask about clothes just put in laundry.
-      const since = Date.parse(item.laundrySince);
+      // Wait 24 hours after the latest laundry decision.
+      const reviewedAt = Date.parse(item.laundryReviewedAt);
 
-      return Number.isFinite(since) &&
-        now - since >= oneDay;
+      // Older records can still use their original basket time.
+      const clock = Number.isFinite(reviewedAt)
+        ? reviewedAt
+        : Date.parse(item.laundrySince);
+
+      return Number.isFinite(clock) &&
+        now - clock >= oneDay;
     }
 
-    // Clean clothes qualify if worn today or the previous three days.
-    const date = Laundry.lastWorn.get(item.id);
-    if (!date) return false;
+    // Clean clothes only return for an unreviewed wear.
+    const reviewed = new Set(
+      Array.isArray(item.laundryReviewedWears)
+        ? item.laundryReviewedWears
+        : []
+    );
 
-    const age = today - Laundry.dayNumber(date);
+    return Laundry.history.some(function (entry) {
+      if (!entry.clothingIds.includes(item.id)) return false;
 
-    return age >= 0 && age < 4;
+      const age = today - Laundry.dayNumber(entry.date);
+      const key = entry.id + "|" + entry.date;
+
+      // Keep the existing four-day window for recently worn clothes.
+      return age >= 0 &&
+        age < 4 &&
+        !reviewed.has(key);
+    });
   });
 
   Laundry.position = 0;
@@ -618,14 +662,16 @@ App.get("cleanAllButton").addEventListener("click", async function () {
   Laundry.setBusy(true);
 
   try {
-    const data = await App.read(["clothes"]);
+    const data = await App.read(["clothes", "history"]);
 
-    await App.write(data.clothes.map(function (item) {
-      return {
-        store: "clothes",
-        value: { ...item, inLaundry: false }
-      };
-    }));
+await App.write(data.clothes.map(function (item) {
+  return {
+    store: "clothes",
+
+    // Mark clean and remember all wears reviewed up to this point.
+    value: Laundry.reviewedItem(item, false, data.history)
+  };
+}));
 
     App.changed();
   } catch (error) {
