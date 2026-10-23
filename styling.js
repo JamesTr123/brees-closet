@@ -152,11 +152,65 @@ Styling.relative = function (map, key) {
   return maximum ? (map.get(key) || 0) / maximum : 0.5;
 };
 
+// Save enough style information to remember a dislike even if a piece is deleted.
+Styling.feedbackFor = function (pieces) {
+  const look = Styling.describe(pieces);
+  if (!look) return null;
+  return {
+    topType: look.top.clothingType || "Unknown",
+    bottomType: look.bottom.clothingType || "Unknown",
+    topColor: look.topColor.hex,
+    bottomColor: look.bottomColor.hex,
+    topFamily: look.topColor.family,
+    bottomFamily: look.bottomColor.family
+  };
+};
+
+Styling.validFeedback = function (feedback) {
+  return feedback && Styling.isHex(feedback.topColor) &&
+    Styling.isHex(feedback.bottomColor) &&
+    ["topType", "bottomType", "topFamily", "bottomFamily"].every(function (field) {
+      return typeof feedback[field] === "string" &&
+        feedback[field].length > 0 && feedback[field].length <= 80;
+    });
+};
+
+// Similar COLORS and similar CLOTHING TYPES each lower the score.
+// The strongest effect is for an outfit similar in both ways.
+// One rejected jeans outfit should not rule out all jeans.
+Styling.feedbackPenalty = function (look, profile) {
+  const cacheKey = look.typeKey + "|" + look.topColor.hex + "|" + look.bottomColor.hex +
+    "|" + look.topColor.family + "|" + look.bottomColor.family;
+  if (profile.feedbackCache?.has(cacheKey)) return profile.feedbackCache.get(cacheKey);
+  let total = 0, strongest = 0;
+  (profile.negativeExamples || []).forEach(function (example) {
+    function shadeSimilarity(item, color, family) {
+      if (Styling.info(item).family === "Multicolor" || family === "Multicolor") return 0;
+      const exact = Styling.colorSimilarity(item, color);
+      return Styling.info(item).family === family ? 0.7 + exact * 0.3 : exact;
+    }
+    const topSimilarity = shadeSimilarity(look.top, example.topColor, example.topFamily);
+    const bottomSimilarity = shadeSimilarity(look.bottom, example.bottomColor, example.bottomFamily);
+    // Both halves need to resemble the disliked palette.
+    const palette = Math.sqrt(topSimilarity * bottomSimilarity);
+    const colorMatch = Styling.clamp((palette - 0.55) / 0.45);
+    const types = (look.top.clothingType === example.topType ? 0.5 : 0) +
+      (look.bottom.clothingType === example.bottomType ? 0.5 : 0);
+    const penalty = colorMatch * 7 + (types === 1 ? 2.5 : 0) + colorMatch * types * 5;
+    total += penalty;
+    strongest = Math.max(strongest, penalty);
+  });
+  // Repeated dislikes strengthen the evidence, with a ceiling of 25 points.
+  const result = Math.min(25, strongest + (total - strongest) * 0.4);
+  profile.feedbackCache?.set(cacheKey, result);
+  return result;
+};
+
 // Learn from the signed-in account's examples only.
 // Worn outfits carry more evidence than an outfit merely being saved.
 Styling.profile = function (data, today) {
   const profile = { typePairs: new Map(), colorPairs: new Map(), topTypes: new Map(), bottomTypes: new Map(),
-    topColors: new Map(), bottomColors: new Map(), samples: [], recent: [], disliked: new Map(), personalCache: new Map(), weight: 0 };
+    topColors: new Map(), bottomColors: new Map(), samples: [], recent: [], negativeExamples: [], feedbackCache: new Map(), personalCache: new Map(), weight: 0 };
   const byId = new Map(data.clothes.map(function (item) { return [item.id, item]; }));
   const todayNumber = Date.parse(today + "T12:00:00Z") / 86400000;
   function add(ids, weight, date) {
@@ -191,12 +245,20 @@ Styling.profile = function (data, today) {
     if (!Number.isFinite(age) || age < 0) return;
     add(entry.clothingIds, 4 * Math.max(0.3, Math.exp(-age / 180)), entry.date);
   });
+  const seenDislikes = new Set();
   (data.dismissed || []).forEach(function (entry) {
+    if (seenDislikes.has(entry.id)) return;
+    seenDislikes.add(entry.id);
+    if (Styling.validFeedback(entry.styleFeedback)) {
+      profile.negativeExamples.push(entry.styleFeedback);
+      return;
+    }
+    // Old dismissals still teach us when their clothing remains in the closet.
     try {
       const pieces = JSON.parse(entry.id).map(function (id) { return byId.get(id); });
       if (pieces.some(function (item) { return !item; })) return;
-      const look = Styling.describe(pieces);
-      if (look) Styling.increment(profile.disliked, look.typeKey + "|" + look.colorKey, 1);
+      const feedback = Styling.feedbackFor(pieces);
+      if (feedback) profile.negativeExamples.push(feedback);
     } catch (error) { /* Ignore a malformed old dismissal. */ }
   });
   profile.confidence = 1 - Math.exp(-profile.weight / 12);
@@ -298,7 +360,7 @@ Styling.score = function (pieces, saved, range, profile) {
   const weather = range.ideal === null ? 1 : Styling.clamp(1 - Math.abs(warmth - range.ideal) / 5);
   const typeEvidence = profile.weight ? Styling.relative(profile.typePairs, look.typeKey) : 0;
   const garment = Styling.garments(look) * (1 - profile.confidence * 0.3) + typeEvidence * profile.confidence * 0.3;
-  const disliked = profile.disliked.get(look.typeKey + "|" + look.colorKey) || 0;
+  const feedbackPenalty = Styling.feedbackPenalty(look, profile);
   const recentSimilarity = profile.recent.reduce(function (best, example) {
     return Math.max(best, Styling.lookSimilarity(look, example));
   }, 0);
@@ -306,9 +368,10 @@ Styling.score = function (pieces, saved, range, profile) {
   // saved favorite 15, weather 10. Recent lookalikes get a small penalty.
   const score = Math.round(Styling.clamp(
     colors * 30 + garment * 20 + personal * 25 + (saved?.favorite ? 15 : 0) + weather * 10 -
-    Math.min(4, disliked * 1.5) - Math.max(0, recentSimilarity - 0.7) * 20, 0, 100
+    feedbackPenalty - Math.max(0, recentSimilarity - 0.7) * 20, 0, 100
   ));
   const reasons = [];
+  if (feedbackPenalty >= 4) reasons.push("Similar to an outfit you dismissed");
   if (profile.confidence > 0.25 && personal > 0.64) reasons.push("Fits colors and clothing types you often choose");
   if (colors > 0.76) reasons.push("A coordinated color pairing");
   else if (look.topColor.family === look.bottomColor.family && !look.topColor.neutral) reasons.push("A tonal color combination");
@@ -319,10 +382,22 @@ Styling.score = function (pieces, saved, range, profile) {
 
 // Pick different LOOKS, not merely different clothing IDs.
 // A required piece may repeat only inside Style This Piece.
-Styling.selectDistinct = function (candidates, limit, requiredPieceId = null) {
+Styling.selectDistinct = function (candidates, limit, requiredPieceId = null, retained = []) {
   const remaining = [...candidates];
   const selected = [], looks = [], keys = new Set(), visualKeys = new Set();
   const usedTops = new Set(), bottomCounts = new Map(), topColorCounts = new Map();
+  function remember(candidate) {
+    const look = candidate._look || (candidate._look = Styling.describe(candidate.pieces));
+    if (!look || keys.has(candidate.key)) return;
+    selected.push(candidate); looks.push(look); keys.add(candidate.key);
+    visualKeys.add(requiredPieceId === look.top.id
+      ? look.visualKey + "|" + look.layers + "|" + Styling.topPattern(candidate.pieces) : look.visualKey);
+    candidate.pieces.filter(function (item) { return item.category === "Top" && item.id !== requiredPieceId; })
+      .forEach(function (item) { usedTops.add(item.id); });
+    bottomCounts.set(look.bottom.id, (bottomCounts.get(look.bottom.id) || 0) + 1);
+    Styling.increment(topColorCounts, look.topColor.family, 1);
+  }
+  retained.forEach(remember);
   while (remaining.length && selected.length < limit) {
     let bestIndex = -1, bestAdjusted = -Infinity;
     remaining.forEach(function (candidate, index) {
@@ -350,14 +425,7 @@ Styling.selectDistinct = function (candidates, limit, requiredPieceId = null) {
     });
     if (bestIndex < 0) break;
     const candidate = remaining.splice(bestIndex, 1)[0];
-    const look = candidate._look;
-    selected.push(candidate); looks.push(look); keys.add(candidate.key);
-    visualKeys.add(requiredPieceId === look.top.id
-      ? look.visualKey + "|" + look.layers + "|" + Styling.topPattern(candidate.pieces) : look.visualKey);
-    candidate.pieces.filter(function (item) { return item.category === "Top" && item.id !== requiredPieceId; })
-      .forEach(function (item) { usedTops.add(item.id); });
-    bottomCounts.set(look.bottom.id, (bottomCounts.get(look.bottom.id) || 0) + 1);
-    Styling.increment(topColorCounts, look.topColor.family, 1);
+    remember(candidate);
   }
   // Keep the strongest displayed Match score at the top.
   return selected.sort(function (a, b) { return b.score - a.score || String(a.key).localeCompare(String(b.key)); });

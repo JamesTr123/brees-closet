@@ -2,6 +2,11 @@
 const Decider = {
   weatherRange: null,
   ranked: [],
+  pieceRanked: [],
+  dismissBusy: false,
+  feedbackVersion: 0,
+  rankedUserId: null,
+  pieceRankedUserId: null,
   shown: 0,
   previewRequestNumber: 0,
   weatherDate: null,
@@ -218,7 +223,9 @@ App.get("useLocationButton").addEventListener("click", function () {
 });
 
 // Clear outdated suggestions after a filter or data change.
-Decider.invalidate = function () {
+Decider.invalidate = function (event) {
+  // Other app sections still refresh after feedback. This screen keeps its cards.
+  if (event?.detail?.kind === "suggestion-dismissed") return;
   Decider.requestNumber++;
   Decider.ranked = [];
   Decider.shown = 0;
@@ -250,6 +257,7 @@ document.querySelectorAll('input[name="deciderStyle"]').forEach(
 
 // GENERATE AND RANK SUGGESTIONS
 Decider.generate = async function (options = {}) {
+  const feedbackVersion = Decider.feedbackVersion;
     // Normally there is no required piece.
 // Style This Piece supplies one clothing ID.
 const requiredPieceId = options.pieceId || null;
@@ -574,6 +582,7 @@ if (source === "existing" && !savedOutfit && !stats) return;
         saved: savedOutfit,
         score: score,
         reasons: evaluation.reasons,
+        scoreRange: range,
         warmth: totalWarmth,
         last: last,
         similarity: similarity,
@@ -671,6 +680,12 @@ if (source === "existing") {
 
     if (!isCurrent()) return;
 
+    // If a dislike finished saving during this search, read fresh feedback.
+    if (feedbackVersion !== Decider.feedbackVersion) {
+      const retry = { ...options };
+      delete retry.data;
+      return Decider.generate(retry);
+    }
    // Sort once, without rendering anything inside the sort function.
 const rankedResults = [...candidates.values()].sort(function (a, b) {
   return b.score - a.score || a.key.localeCompare(b.key);
@@ -687,6 +702,8 @@ if (isPreview) {
 if (requiredPieceId) {
   const destination = App.get("stylePieceResults");
   destination.replaceChildren();
+  Decider.pieceRanked = rankedResults;
+  Decider.pieceRankedUserId = Account.user?.id;
 
   const visible = Decider.pieceMode === "new"
     ? Styling.selectDistinct(rankedResults, 3, requiredPieceId)
@@ -705,6 +722,7 @@ if (requiredPieceId) {
 
 // Main Outfit Decider gets a fresh list and starts at the first result.
 Decider.ranked = rankedResults;
+Decider.rankedUserId = Account.user?.id;
 Decider.shown = 0;
 
 App.get("suggestionGrid").replaceChildren();
@@ -851,6 +869,8 @@ const alreadyDisplayed = [...destination.children].some(
 
 if (alreadyDisplayed) return;
   const card = document.createElement("div");
+  // Keep the candidate attached so other visible cards can be retained.
+  card.outfitCandidate = candidate;
   // Remember which combination this card represents.
 card.dataset.combinationKey = combinationKey;
   card.className = "saved-outfit-card";
@@ -989,23 +1009,10 @@ content.append(starLabel, save);
   dismiss.className = "card-button";
   dismiss.textContent = "Don't suggest this outfit";
 
-  dismiss.addEventListener("click", async function () {
-    dismiss.disabled = true;
-
-    try {
-      await App.write([{
-        store: "dismissed",
-        value: {
-          id: candidate.key,
-          createdAt: new Date().toISOString()
-        }
-      }]);
-
-      App.changed();
-    } catch (error) {
-      alert("This suggestion could not be dismissed.");
-      dismiss.disabled = false;
-    }
+  dismiss.dataset.dismissOutfit = "true";
+  dismiss.disabled = Decider.dismissBusy;
+  dismiss.addEventListener("click", function () {
+    Decider.dismissSuggestion(candidate, card, destination, dismiss);
   });
 
   content.appendChild(dismiss);
@@ -1052,6 +1059,135 @@ if (stylingPiece && Decider.pieceMode === "new") {
     (Decider.pieceMode === "new" ? " new" : " existing") +
 " outfit(s), ranked by match score.";
 }
+};
+
+// Re-score the cached alternatives with the newly saved dislike.
+// This changes future choices, without removing the cards she is still viewing.
+Decider.rescoreFeedback = function (data) {
+  const rejected = new Set(data.dismissed.map(function (entry) { return entry.id; }));
+  const profile = Styling.profile(data, History.today());
+  ["ranked", "pieceRanked"].forEach(function (name) {
+    if (Decider[name + "UserId"] !== Account.user?.id) {
+      Decider[name] = [];
+      return;
+    }
+    Decider[name] = Decider[name].filter(function (candidate) {
+      return !rejected.has(candidate.key);
+    });
+    Decider[name].forEach(function (candidate) {
+      if (candidate.pieces.length !== candidate.ids.length) return;
+      const evaluation = Styling.score(candidate.pieces, candidate.saved,
+        candidate.scoreRange || Decider.ranges.any, profile);
+      candidate.score = evaluation.score;
+      candidate.similarity = evaluation.personal;
+      candidate.reasons = evaluation.reasons;
+    });
+    Decider[name].sort(function (a, b) {
+      return b.score - a.score || a.key.localeCompare(b.key);
+    });
+  });
+};
+
+Decider.matchesMode = function (candidate, mode) {
+  if (mode === "saved") return Boolean(candidate.saved);
+  if (mode === "new") return !candidate.saved && !candidate.last;
+  return Boolean(candidate.saved) || !candidate.last;
+};
+
+// Replace one dismissed card. The other cards keep their photos and controls.
+Decider.replaceDismissedCard = function (card, destination) {
+  const pieceView = destination === App.get("stylePieceResults");
+  const retained = [...destination.children].filter(function (element) {
+    return element !== card;
+  }).map(function (element) { return element.outfitCandidate; }).filter(Boolean);
+  const keepKeys = new Set(retained.map(function (candidate) { return candidate.key; }));
+  const existingView = pieceView && Decider.pieceMode === "existing";
+  const pool = (pieceView ? Decider.pieceRanked : Decider.ranked).filter(function (candidate) {
+    return pieceView ? candidate.ids.includes(Decider.activePieceId) &&
+      (existingView || (!candidate.saved && !candidate.last))
+      : Decider.matchesMode(candidate, Decider.resultsMode || "all");
+  });
+  const replacement = existingView
+    ? pool.find(function (candidate) { return !keepKeys.has(candidate.key); })
+    : Styling.selectDistinct(pool, retained.length + 1,
+        pieceView ? Decider.activePieceId : null, retained)
+      .find(function (candidate) { return !keepKeys.has(candidate.key); });
+
+  card.remove();
+  if (replacement) Decider.renderCard(replacement, 1, destination);
+  // Reorder the existing DOM nodes; do not rebuild the other cards.
+  [...destination.children].sort(function (a, b) {
+    return Number(b.dataset.matchScore) - Number(a.dataset.matchScore);
+  }).forEach(function (element, index) {
+    destination.appendChild(element);
+    const heading = element.querySelector("h3");
+    if (heading) heading.textContent = "#" + (index + 1) + " — " + element.dataset.outfitLabel;
+  });
+  const count = destination.childElementCount;
+  if (!pieceView) Decider.shown = count;
+  App.get(pieceView ? "stylePieceStatus" : "deciderStatus").textContent =
+    (replacement ? "Outfit replaced. " : "Outfit hidden. No more different matches are available with these filters. ") +
+    (count ? "Showing " + count + " outfit(s)." : "Try another tab or adjust your filters.");
+};
+
+Decider.dismissSuggestion = async function (candidate, card, destination, button) {
+  if (Decider.dismissBusy) return;
+  Decider.dismissBusy = true;
+  const userId = Account.user?.id;
+  const disabledBefore = new Map();
+  document.querySelectorAll("[data-dismiss-outfit]").forEach(function (control) {
+    disabledBefore.set(control, control.disabled);
+    control.disabled = true;
+  });
+  button.textContent = "Saving preference...";
+  let preferenceSaved = false;
+
+  try {
+    const data = await App.read(["clothes", "outfits", "history", "dismissed"]);
+    if (Account.user?.id !== userId) return;
+    const entry = {
+      id: candidate.key,
+      createdAt: new Date().toISOString(),
+      // Store only type/color details, so this adds no duplicate photo storage.
+      styleFeedback: Styling.feedbackFor(candidate.pieces)
+    };
+    await App.write([{ store: "dismissed", value: entry }]);
+    preferenceSaved = true;
+    if (Account.user?.id !== userId) return;
+    data.dismissed = data.dismissed.filter(function (item) { return item.id !== entry.id; });
+    data.dismissed.push(entry);
+    Decider.feedbackVersion++;
+    Decider.rescoreFeedback(data);
+    // The user may have switched result tabs while the save was finishing.
+    // Update only cards which still show this exact rejected combination.
+    ["suggestionGrid", "stylePieceResults"].forEach(function (id) {
+      const grid = App.get(id);
+      [...grid.children].filter(function (element) {
+        return element.dataset.combinationKey === candidate.key;
+      }).forEach(function (element) { Decider.replaceDismissedCard(element, grid); });
+    });
+    document.dispatchEvent(new CustomEvent("closet-data-changed", {
+      detail: { kind: "suggestion-dismissed", outfitKey: candidate.key }
+    }));
+  } catch (error) {
+    if (preferenceSaved) {
+      // A display problem must never be reported as a failed cloud save.
+      if (Account.user?.id === userId) {
+        card.remove();
+        App.get(destination === App.get("stylePieceResults")
+          ? "stylePieceStatus" : "deciderStatus").textContent =
+          "Your preference was saved. Reopen suggestions to refresh the results.";
+      }
+    } else {
+      alert("This suggestion could not be dismissed. Please try again.");
+    }
+  } finally {
+    Decider.dismissBusy = false;
+    button.textContent = "Don't suggest this outfit";
+    document.querySelectorAll("[data-dismiss-outfit]").forEach(function (control) {
+      control.disabled = disabledBefore.get(control) || false;
+    });
+  }
 };
 
 // Allow all dismissed combinations again.
@@ -1191,6 +1327,7 @@ App.get("stylePieceExisting").addEventListener("click", function () {
 // Show every saved combination containing the selected piece.
 // Weather affects ranking, but does not exclude existing outfits.
 Decider.showExistingForPiece = async function (itemId) {
+  const feedbackVersion = Decider.feedbackVersion;
   const request = ++Decider.requestNumber;
   const status = App.get("stylePieceStatus");
   const destination = App.get("stylePieceResults");
@@ -1199,7 +1336,7 @@ Decider.showExistingForPiece = async function (itemId) {
   status.textContent = "Loading existing outfits...";
 
   try {
-    const data = await App.read(["outfits", "clothes", "history"]);
+    const data = await App.read(["outfits", "clothes", "history", "dismissed"]);
 
     // Ignore a result if she switched views or closed the popup.
     if (
@@ -1207,6 +1344,10 @@ Decider.showExistingForPiece = async function (itemId) {
       !App.get("stylePieceDialog").open ||
       Decider.pieceMode !== "existing"
     ) return;
+
+    if (feedbackVersion !== Decider.feedbackVersion) {
+      return Decider.showExistingForPiece(itemId);
+    }
 
     const byId = new Map(data.clothes.map(function (item) {
       return [item.id, item];
@@ -1219,10 +1360,12 @@ Decider.showExistingForPiece = async function (itemId) {
     const profile = Styling.profile(data, History.today());
 
     const combinations = new Map();
+    const dismissed = new Set(data.dismissed.map(function (entry) { return entry.id; }));
 
     data.outfits.forEach(function (outfit) {
       // Only include outfits containing this exact clothing item.
       if (!outfit.clothingIds.includes(itemId)) return;
+      if (dismissed.has(App.signature(outfit.clothingIds))) return;
 
       const key = App.signature(outfit.clothingIds);
 
@@ -1255,6 +1398,7 @@ Decider.showExistingForPiece = async function (itemId) {
         saved: outfit,
         score: score,
         reasons: evaluation.reasons,
+        scoreRange: range,
         warmth: warmth,
         last: dates.length ? dates[dates.length - 1] : "",
         similarity: similarity,
@@ -1273,6 +1417,8 @@ Decider.showExistingForPiece = async function (itemId) {
       return b.score - a.score || a.key.localeCompare(b.key);
     });
 
+    Decider.pieceRanked = ranked;
+    Decider.pieceRankedUserId = Account.user?.id;
     ranked.forEach(function (candidate, index) {
       Decider.renderCard(candidate, index + 1, destination);
     });
